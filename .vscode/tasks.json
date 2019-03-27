@@ -1,0 +1,70 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build/Dev",
+            "type": "shell",
+            "command": "gcc",
+            "args": [
+                "src/main.c",
+                "src/fs/fs_util.c",
+                "src/fs/fs_mount.c",
+                "src/fs/fs_path.c",
+                "src/cmd/cmd_util.c",
+                "src/cmd/cmd_blocks.c",
+                "src/cmd/cmd_cd.c",
+                "src/cmd/cmd_chmod.c",
+                "src/cmd/cmd_creat.c",
+                "src/cmd/cmd_link.c",
+                "src/cmd/cmd_ls.c",
+                "src/cmd/cmd_mkdir.c",
+                "src/cmd/cmd_pwd.c",
+                "src/cmd/cmd_rmdir.c",
+                "src/cmd/cmd_stat.c",
+                "src/cmd/cmd_symlink.c",
+                "src/cmd/cmd_touch.c",
+                "src/cmd/cmd_unlink.c",
+                "-g",
+                "-o",
+                "fs_dev.out"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build/Prod",
+            "type": "shell",
+            "command": "gcc",
+            "args": [
+                "src/main.c",
+                "src/fs/fs_util.c",
+                "src/fs/fs_mount.c",
+                "src/fs/fs_path.c",
+                "src/cmd/cmd_util.c",
+                "src/cmd/cmd_blocks.c",
+                "src/cmd/cmd_cd.c",
+                "src/cmd/cmd_chmod.c",
+                "src/cmd/cmd_creat.c",
+                "src/cmd/cmd_link.c",
+                "src/cmd/cmd_ls.c",
+                "src/cmd/cmd_mkdir.c",
+                "src/cmd/cmd_pwd.c",
+                "src/cmd/cmd_rmdir.c",
+                "src/cmd/cmd_stat.c",
+                "src/cmd/cmd_symlink.c",
+                "src/cmd/cmd_touch.c",
+                "src/cmd/cmd_unlink.c",
+                "-o",
+                "fs.out"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}

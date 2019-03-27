@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "stdlib.h": "c",
+        "fs.h": "c",
+        "stdbool.h": "c",
+        "cstdbool": "c"
+    },
+    "search.exclude": {
+        "./resource": true,
+        "./.vscode": true,
+        "./.ccls-cache": true,
+    }
+}
