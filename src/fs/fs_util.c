@@ -56,32 +56,7 @@ int free_minode(minode *mip) // release a used minode
   return 0;
 }
 
-// get_block/put_block functions:
-// We assume that a block device, e.g. a real or virtual disk, can
-// only be read or written in unit of block size. For real disks, this is due to
-// hardware constraints. For virtual disks, we assume that read/write is
-// by block size, so that the code can be ported to real disks if desired. For
-// a virtual disk, we first open it for R|W mode and use the file descriptor
-// as the device number. The following functions read/write a virtual disk
-// block into/from a buffer area in memory.
-
-int get_block(int dev, int blk, char *buf) {
-  lseek(dev, blk * BLKSIZE_1024, SEEK_SET);
-  int n = read(dev, buf, BLKSIZE_1024);
-  if (n < 0)
-    printf("get_block[% d % d] error \n", dev, blk);
-  return 0;
-}
-
-int put_block(int dev, int blk, char *buf) {
-  lseek(dev, blk * BLKSIZE_1024, SEEK_SET);
-  int n = write(dev, buf, BLKSIZE_1024);
-  if (n != BLKSIZE_1024)
-    printf("put_block [%d %d] error\n", dev, blk);
-  return 0;
-}
-
-// get_inode(dev, ino) function:
+// get_minode(dev, ino) function:
 // This function returns a pointer to the in-memory minode containing the
 // INODE of (dev, ino). The returned minode is unique, i.e. only one copy of the
 // INODE exists in memory. In a real file system, the returned minode is locked
@@ -91,7 +66,7 @@ int put_block(int dev, int blk, char *buf) {
 // be explained later.
 
 // todo: rename to get_minode?
-minode *get_inode(int dev, int ino) {
+minode *get_minode(int dev, int ino) {
   minode *mip;
   mount_entry *me = &mount_entry_arr[0];
   inode *ip;
@@ -124,16 +99,16 @@ minode *get_inode(int dev, int ino) {
   return mip;
 }
 
-// put_inode(INODE *mip) function:
+// put_minode(INODE *mip) function:
 // This function releases a used minode pointed by mip. Each
 // minode has a refCount, which represents the number of users that are using
-// the minode. put_inode() decrements the refCount by 1. If the refCount is non
+// the minode. put_minode() decrements the refCount by 1. If the refCount is non
 // - zero, meaning that the minode still has other users, the caller simply
 // returns. If the caller is the last user of the minode (refCount 1⁄4 0), the
 // INODE is written back to disk if it is modified (dirty).
 
 // todo: rename to put_minode?
-int put_inode(minode *mip) {
+int put_minode(minode *mip) {
   inode *ip;
   int i, block, offset;
   char buf[BLKSIZE_1024];
@@ -152,5 +127,30 @@ int put_inode(minode *mip) {
   *ip = mip->inode;
   put_block(mip->dev, block, buf);
   free_minode(mip);
+  return 0;
+}
+
+// get_block/put_block functions:
+// We assume that a block device, e.g. a real or virtual disk, can
+// only be read or written in unit of block size. For real disks, this is due to
+// hardware constraints. For virtual disks, we assume that read/write is
+// by block size, so that the code can be ported to real disks if desired. For
+// a virtual disk, we first open it for R|W mode and use the file descriptor
+// as the device number. The following functions read/write a virtual disk
+// block into/from a buffer area in memory.
+
+int get_block(int dev, int blk, char *buf) {
+  lseek(dev, blk * BLKSIZE_1024, SEEK_SET);
+  int n = read(dev, buf, BLKSIZE_1024);
+  if (n < 0)
+    printf("get_block[% d % d] error \n", dev, blk);
+  return 0;
+}
+
+int put_block(int dev, int blk, char *buf) {
+  lseek(dev, blk * BLKSIZE_1024, SEEK_SET);
+  int n = write(dev, buf, BLKSIZE_1024);
+  if (n != BLKSIZE_1024)
+    printf("put_block [%d %d] error\n", dev, blk);
   return 0;
 }

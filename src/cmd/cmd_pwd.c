@@ -2,22 +2,46 @@
 
 void print_path(minode *mip) {
   if (mip == global_root)
-    printf("/");
+    ;
   else {
-    char buf[BLKSIZE_1024];
-    char name[256];
-    get_block(mip->dev, mip->inode.i_block[0], buf);
-    dir_entry *this_dir = (dir_entry *)buf;
-    snprintf(name, this_dir->name_len, "%s", this_dir->name);
-    dir_entry *daddy_dir = (dir_entry *)buf + this_dir->rec_len;
-    mip = get_inode(mip->dev, daddy_dir->inode);
+    char buf1[BLKSIZE_1024], *buf1p;
+    char buf2[BLKSIZE_1024], *buf2p;
+    char name[256] = {0};
+    dir_entry *this_dir, *parent_dir, *dirp;
+
+    get_block(mip->dev, mip->inode.i_block[0], buf1);
+    this_dir = (dir_entry *)buf1;
+    parent_dir = (dir_entry *)(buf1 + this_dir->rec_len);
+    mip = get_minode(mip->dev, parent_dir->inode);
+
+    for (int i = 0; i < 12 && !(*name); i++) { // search direct blocks only
+      if (mip->inode.i_block[i] == 0)
+        break;
+      get_block(mip->dev, mip->inode.i_block[i], buf2);
+      dirp = (dir_entry *)buf2;
+      buf2p = buf2;
+      // todo: double check this condition
+      while (buf2p < buf2 + BLKSIZE_1024) {
+        dirp = (dir_entry *)buf2p;
+        buf2p += dirp->rec_len;
+        if (dirp->inode == this_dir->inode) {
+          strncpy(name, dirp->name, dirp->name_len);
+          name[dirp->name_len] = '\0';
+          break;
+        }
+      }
+    }
     print_path(mip); // recursive call
     printf("/%s", name);
   }
 }
 
 bool do_pwd(cmd *c) {
-  print_path(running->cwd);
-  printf("\n");
+  if (running->cwd == global_root)
+    printf("/\n");
+  else {
+    print_path(running->cwd);
+    printf("\n");
+  }
   return true;
 }

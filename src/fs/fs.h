@@ -175,7 +175,7 @@ minode *alloc_minode();
 int free_minode(minode *);
 int get_block(int, int, char *);
 int put_block(int, int, char *);
-minode *get_inode(int, int);
-int put_inode(minode *);
+minode *get_minode(int, int);
+int put_minode(minode *);
 
 #endif

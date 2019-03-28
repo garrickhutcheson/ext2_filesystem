@@ -21,23 +21,26 @@
 int parse_path(char *path_name, path *buf_path) {
   char *s, safe_path[256];
   buf_path->argc = 0;
+
   // check if root
   if (strcmp(path_name, "/") == 0) {
     buf_path->is_root = true;
     buf_path->argc = 1;
-  } else {
-    // check if absolute or relative
-    if (path_name[0] == '/')
-      buf_path->is_absolute = true;
-    else
-      buf_path->is_absolute = false;
-    strcpy(safe_path, path_name);
-    // split into components
-    s = strtok(safe_path, "/");
-    while (s) {
-      strcpy(buf_path->argv[buf_path->argc++], s);
-      s = strtok(NULL, "/");
-    }
+  } else
+    buf_path->is_root = false;
+
+  // check if absolute or relative
+  if (path_name[0] == '/')
+    buf_path->is_absolute = true;
+  else
+    buf_path->is_absolute = false;
+
+  strcpy(safe_path, path_name);
+  // split into components
+  s = strtok(safe_path, "/");
+  while (s) {
+    strcpy(buf_path->argv[buf_path->argc++], s);
+    s = strtok(NULL, "/");
   }
   buf_path->argv[buf_path->argc][0] = 0;
   return buf_path->argc;
@@ -100,13 +103,12 @@ int list_dir(minode *mip, dir_entry *dir_arr) {
   return dirc;
 }
 
-// must put_inode on returned minode when done
+// must put_minode on returned minode when done
 minode *search_path(path *target_path) {
   minode *mip;
   int i, ino;
-  if (target_path->is_root) {
+  if (target_path->is_root)
     return global_root;
-  }
   if (target_path->is_absolute)
     mip = global_root; // if absolute
   else
@@ -119,13 +121,13 @@ minode *search_path(path *target_path) {
     ino = search_dir(mip, target_path->argv[i]);
     if (!ino) {
       printf("no such component name %s\n", target_path->argv[i]);
-      put_inode(mip);
+      put_minode(mip);
       return NULL;
     }
     // release current minode
-    put_inode(mip);
+    put_minode(mip);
     // switch to new minode
-    mip = get_inode(mount_entry_arr[0].fd, ino);
+    mip = get_minode(mount_entry_arr[0].fd, ino);
   }
   return mip;
 }

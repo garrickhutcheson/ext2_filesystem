@@ -1,5 +1,6 @@
 # VSCode
 .vscode/ipch
+.ccls-cache
 
 # Prerequisites
 *.d

@@ -11,7 +11,7 @@ bool do_cd(cmd *c) {
   }
   if (!check_mode(&dest->inode, DIR_FILE))
     return false;
-  put_inode(running->cwd);
+  put_minode(running->cwd);
   running->cwd = dest;
   return true;
 }

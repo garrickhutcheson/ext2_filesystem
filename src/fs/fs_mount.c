@@ -36,15 +36,15 @@ int mount_root(char *dev_path) {
   DEBUG_PRINT("block_bitmap=%d inode_bitmap=%d inode_table=%d\n",
               me->group_desc.bg_block_bitmap, me->group_desc.bg_inode_bitmap,
               me->group_desc.bg_inode_table);
-  // call get_inode(), which inc minode’s refCount
-  me->root = get_inode(dev, 2);
+  // call get_minode(), which inc minode’s refCount
+  me->root = get_minode(dev, 2);
   // set global root
   global_root = me->root;
   // double link
   global_root->mount_entry = me;
   // set proc CWDs
-  for (i = 0; i < NUM_PROCS; i++)        // set proc’s CWD
-    proc_arr[i].cwd = get_inode(dev, 2); // increments refCount
+  for (i = 0; i < NUM_PROCS; i++)         // set proc’s CWD
+    proc_arr[i].cwd = get_minode(dev, 2); // increments refCount
   DEBUG_PRINT("mount : %s mounted on / \n", dev_path);
   return 0;
 }

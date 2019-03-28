@@ -56,6 +56,6 @@ bool do_blocks(cmd *c) {
   }
   printf("\n");
 
-  put_inode(mip);
+  put_minode(mip);
   return true;
 }

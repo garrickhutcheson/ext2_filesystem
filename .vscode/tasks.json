@@ -25,6 +25,7 @@
                 "src/cmd/cmd_touch.c",
                 "src/cmd/cmd_unlink.c",
                 "-g",
+                "-m32",
                 "-o",
                 "fs_dev.out"
             ],
@@ -57,6 +58,7 @@
                 "src/cmd/cmd_symlink.c",
                 "src/cmd/cmd_touch.c",
                 "src/cmd/cmd_unlink.c",
+                "-m32",
                 "-o",
                 "fs.out"
             ],
