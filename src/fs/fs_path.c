@@ -63,7 +63,7 @@ int search_dir(minode *mip, char *dir_name) {
     dep = (dir_entry *)buf;
     fs_p = buf;
     while (fs_p < buf + BLKSIZE_1024) {
-      snprintf(temp, dep->rec_len, "%s", dep->name);
+      snprintf(temp, dep->rec_len + 1, "%s", dep->name);
       DEBUG_PRINT("%8d%8d%8u %s\n", dep->inode, dep->rec_len, dep->name_len,
                   temp);
       if (strncmp(dir_name, dep->name, dep->name_len) == 0) {
