@@ -28,6 +28,13 @@ int fs_init() {
   return 0;
 }
 
+bool check_mode(inode *file, int mode) {
+  if (((int)(file->i_mode & 0xF000)) == mode)
+    return true;
+  else
+    return false;
+}
+
 minode *alloc_minode()
 // allocate a free minode for use
 {

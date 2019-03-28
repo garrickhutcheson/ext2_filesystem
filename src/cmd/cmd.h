@@ -1,8 +1,10 @@
 #pragma once
 
 #include "../fs/fs.h"
+#include <libgen.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <time.h>
 
 typedef struct cmd {
   int argc;       // count of strings
@@ -28,3 +30,4 @@ bool do_unlink(cmd *);
 bool do_cmd(cmd *c);
 int parse_cmd(char *, cmd *);
 int spawn_proc(int, int, cmd *);
+void print_path(minode *mip);

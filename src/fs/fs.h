@@ -37,6 +37,18 @@ typedef struct ext2_dir_entry_2 dir_entry;
 // EXT2_EXCLUDE_INO 9     The "exclude" inode, for snapshots
 // EXT4_REPLICA_INO 10    Used by non-upstream feature
 
+// File types
+#define __S_IFDIR 0040000  /* Directory.  */
+#define __S_IFCHR 0020000  /* Character device.  */
+#define __S_IFBLK 0060000  /* Block device.  */
+#define __S_IFREG 0100000  /* Regular file.  */
+#define __S_IFIFO 0010000  /* FIFO.  */
+#define __S_IFLNK 0120000  /* Symbolic link.  */
+#define __S_IFSOCK 0140000 /* Socket.  */
+#define DIR_FILE __S_IFDIR
+#define REG_FILE __S_IFREG
+#define LNK_FILE __S_IFLNK
+
 // Proc status
 #define PROC_FREE 0
 #define PROC_BUSY 1
@@ -158,6 +170,7 @@ int list_dir(minode *mip, dir_entry *);
 
 // fs_util
 int fs_init();
+bool check_mode(inode *file, int mode);
 minode *alloc_minode();
 int free_minode(minode *);
 int get_block(int, int, char *);

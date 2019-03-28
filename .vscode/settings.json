@@ -1,13 +1,9 @@
 {
-    "files.associations": {
-        "stdlib.h": "c",
-        "fs.h": "c",
-        "stdbool.h": "c",
-        "cstdbool": "c"
-    },
     "search.exclude": {
         "./resource": true,
         "./.vscode": true,
         "./.ccls-cache": true,
-    }
+    },
+    "C_Cpp.clang_format_fallbackStyle": "LLVM",
+    "editor.formatOnSave": true,
 }
