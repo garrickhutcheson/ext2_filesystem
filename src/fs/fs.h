@@ -159,7 +159,14 @@ proc *running;
 
 //// FUNC ////
 
+// fs_minode
+minode *alloc_minode();
+int free_minode(minode *);
+minode *get_minode(int, int);
+int put_minode(minode *);
+
 // fs_mount
+int fs_init();
 int mount_root(char *);
 
 // fs_path
@@ -169,13 +176,12 @@ minode *search_path(path *);
 int list_dir(minode *mip, dir_entry *);
 
 // fs_util
-int fs_init();
 bool check_mode(inode *file, int mode);
-minode *alloc_minode();
-int free_minode(minode *);
 int get_block(int, int, char *);
 int put_block(int, int, char *);
-minode *get_minode(int, int);
-int put_minode(minode *);
+int tst_bit(char *buf, int bit);
+int set_bit(char *buf, int bit);
+int clr_bit(char *buf, int bit);
+int ialloc(int dev);
 
 #endif

@@ -1,5 +1,31 @@
 #include "fs.h"
 
+int fs_init() {
+  int i, j;
+  // initialize all minodes
+  for (i = 0; i < NUM_MINODES; i++)
+    minode_arr[i].refCount = 0;
+  // initialize mount entries
+  for (i = 0; i < NUM_MOUNT_ENTRIES; i++)
+    mount_entry_arr[i].fd = 0;
+  // initialize PROCs
+  for (i = 0; i < NUM_PROCS; i++) {
+    proc_arr[i].status = PROC_FREE;
+    proc_arr[i].pid = i;
+    // P0 is a superuser process
+    proc_arr[i].uid = i;
+    // initialize PROC file descriptors to NULL
+    for (j = 0; j < NUM_FD; j++)
+      proc_arr[i].oft_arr[j] = 0;
+    proc_arr[i].next = &proc_arr[i + 1];
+  }
+  // circular list
+  proc_arr[NUM_PROCS - 1].next = &proc_arr[0];
+  // P0 runs first
+  running = &proc_arr[0];
+  return 0;
+}
+
 int mount_root(char *dev_path) {
   int i;
   mount_entry *me;
