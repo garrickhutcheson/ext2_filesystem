@@ -47,19 +47,19 @@ int parse_path(char *path_name, path *buf_path) {
 }
 
 // checks directory for a file
-int search_dir(minode *mip, char *dir_name) {
+bool search_dir(minode *mip, char *dir_name) {
   int i;
   char *fs_p, temp[256], buf[BLKSIZE_1024] = {0}, *b = buf;
   dir_entry *dep;
   if (!S_ISDIR(mip->inode.i_mode))
-    return 0;
+    return false;
   // search dir_entry direct blocks only
   for (i = 0; i < 12; i++) {
     // if direct block is null stap
     if (mip->inode.i_block[i] == 0)
-      return 0;
+      return false;
     // get next direct block
-    get_block(mip->dev, mip->inode.i_block[i], buf);
+    get_block(mip->mount_entry, mip->inode.i_block[i], buf);
     dep = (dir_entry *)buf;
     fs_p = buf;
     while (fs_p < buf + BLKSIZE_1024) {
@@ -74,11 +74,12 @@ int search_dir(minode *mip, char *dir_name) {
       dep = (dir_entry *)fs_p;
     }
   }
-  return 0;
+  return true;
 }
 
 // returns an array of dir_entry from a dir minode
 // only supports direct blocks
+// write dir entries
 int list_dir(minode *mip, dir_entry *dir_arr) {
   char *fs_p, buf[BLKSIZE_1024];
   dir_entry *dirp;
@@ -88,7 +89,7 @@ int list_dir(minode *mip, dir_entry *dir_arr) {
   for (int i = 0; i < 12; i++) { // search direct blocks only
     if (mip->inode.i_block[i] == 0)
       return dirc;
-    get_block(mip->dev, mip->inode.i_block[i], buf);
+    get_block(mip->mount_entry, mip->inode.i_block[i], buf);
     dirp = (dir_entry *)buf;
     fs_p = buf;
     // todo: double check this condition
@@ -108,12 +109,12 @@ minode *search_path(path *target_path) {
   minode *mip;
   int i, ino;
   if (target_path->is_root)
-    return global_root;
+    return global_root_inode;
   if (target_path->is_absolute)
-    mip = global_root; // if absolute
+    mip = global_root_inode; // if absolute
   else
     mip = running->cwd; // if relative
-  mip->refCount++;
+  mip->ref_count++;
 
   // search for each token string
   for (i = 0; i < target_path->argc; i++) {
@@ -127,7 +128,7 @@ minode *search_path(path *target_path) {
     // release current minode
     put_minode(mip);
     // switch to new minode
-    mip = get_minode(mount_entry_arr[0].fd, ino);
+    mip = get_minode(&mount_entry_arr[0], ino);
   }
   return mip;
 }

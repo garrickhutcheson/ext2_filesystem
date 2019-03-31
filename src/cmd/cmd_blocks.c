@@ -13,19 +13,19 @@ bool do_blocks(cmd *c) {
   for (int i = 0; i < 12 && mip->inode.i_block[i]; i++)
     printf(" %-4u ", mip->inode.i_block[i]);
 
-  get_block(mip->dev, mip->inode.i_block[12], buf1);
+  get_block(mip->mount_entry, mip->inode.i_block[12], buf1);
   if (mip->inode.i_block[12])
     printf("\nindirect blocks:\n[%u] :\n", mip->inode.i_block[12]);
   fs_p1 = (int *)buf1;
   while (*fs_p1 && ((char *)fs_p1 < buf1 + BLKSIZE_1024))
     printf(" %-4u ", *fs_p1++);
 
-  get_block(mip->dev, mip->inode.i_block[13], buf1);
+  get_block(mip->mount_entry, mip->inode.i_block[13], buf1);
   if (mip->inode.i_block[13])
     printf("\ndouble indirect blocks:\n[%u] :\n", mip->inode.i_block[13]);
   fs_p1 = (int *)buf1;
   while (*fs_p1 && ((char *)fs_p1 < buf1 + BLKSIZE_1024)) {
-    get_block(mip->dev, *fs_p1, buf2);
+    get_block(mip->mount_entry, *fs_p1, buf2);
     printf("[[%u]] :\n", *fs_p1);
     fs_p2 = (int *)buf2;
     while (*fs_p2 && ((char *)fs_p2 < buf2 + BLKSIZE_1024))
@@ -34,16 +34,16 @@ bool do_blocks(cmd *c) {
     fs_p1++;
   }
 
-  get_block(mip->dev, mip->inode.i_block[14], buf1);
+  get_block(mip->mount_entry, mip->inode.i_block[14], buf1);
   if (mip->inode.i_block[14])
     printf("triple indirect blocks:\n[%u] :\n", mip->inode.i_block[14]);
   fs_p1 = (int *)buf1;
   while (*fs_p1 && ((char *)fs_p1 < buf1 + BLKSIZE_1024)) {
-    get_block(mip->dev, *fs_p1, buf2);
+    get_block(mip->mount_entry, *fs_p1, buf2);
     printf("[[%u]] :\n", *fs_p1);
     fs_p2 = (int *)buf2;
     while (*fs_p2 && ((char *)fs_p2 < buf2 + BLKSIZE_1024)) {
-      get_block(mip->dev, *fs_p2, buf3);
+      get_block(mip->mount_entry, *fs_p2, buf3);
       printf("[[[%u]]] :\n", *fs_p2);
       fs_p3 = (int *)buf3;
       while (*fs_p3 && ((char *)fs_p3 < buf3 + BLKSIZE_1024))

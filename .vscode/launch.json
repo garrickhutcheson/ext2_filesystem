@@ -24,29 +24,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "Build/Dev"
-        },
-        {
-            "name": "Run",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/fs.out",
-            "args": [
-                "resource/exampledisk"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "Build/Prod"
+            "preLaunchTask": "Build/Dev",
         }
     ]
 }

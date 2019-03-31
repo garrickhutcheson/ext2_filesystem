@@ -10,7 +10,12 @@ int main(int argc, char const *argv[]) {
   // init globals
   fs_init();
   // read device meta data
-  mount_root(root_dev);
+  mount_entry *me = mount_device(root_dev, "/");
+  global_root_inode = me->root;
+  global_root_mount = me;
+
+  for (int i = 0; i < NUM_PROCS; i++)
+    proc_arr[i].cwd = global_root_inode;
 
   // progam loop
   for (;;) {

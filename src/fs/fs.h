@@ -74,15 +74,14 @@ typedef struct path {
 
 // In-memory inodes structure
 typedef struct minode {
-  inode inode;
   // disk inode
-  int dev, ino;
+  inode inode;
+  // inode number
+  int ino;
   // use count
-  int refCount;
+  int ref_count;
   // modified flag
-  int dirty;
-  // mounted flag
-  int mounted;
+  bool dirty;
   // mount entry pointer
   struct mount_entry *mount_entry;
   // ignored for simple FS
@@ -115,8 +114,9 @@ typedef struct proc {
 
 // Mount Entry structure
 typedef struct mount_entry {
+  // mounted flag
+  bool mounted;
   // device file descriptor
-  // also used for null check
   int fd;
   // device root inode
   minode *root;
@@ -141,12 +141,12 @@ typedef struct mount_entry {
 minode minode_arr[NUM_MINODES];
 
 // root mounted inode
-minode *global_root;
+minode *global_root_inode;
 
 // mount tables
 mount_entry mount_entry_arr[NUM_MOUNT_ENTRIES];
 
-mount_entry *root_mount;
+mount_entry *global_root_mount;
 
 // Opened file instance
 oft oft_arr[NUM_OFT];
@@ -161,27 +161,29 @@ proc *running;
 
 // fs_minode
 minode *alloc_minode();
-int free_minode(minode *);
-minode *get_minode(int, int);
-int put_minode(minode *);
+bool free_minode(minode *);
+minode *get_minode(mount_entry *, int);
+bool put_minode(minode *);
 
 // fs_mount
 int fs_init();
-int mount_root(char *);
+mount_entry *mount_device(char *, char *);
 
 // fs_path
 int parse_path(char *, path *);
-int search_dir(minode *, char *);
+bool search_dir(minode *, char *);
 minode *search_path(path *);
 int list_dir(minode *mip, dir_entry *);
 
 // fs_util
-bool check_mode(inode *file, int mode);
-int get_block(int, int, char *);
-int put_block(int, int, char *);
-int tst_bit(char *buf, int bit);
-int set_bit(char *buf, int bit);
-int clr_bit(char *buf, int bit);
-int ialloc(int dev);
-
+bool check_mode(inode *, int);
+bool get_block(mount_entry *, int, char *);
+bool put_block(mount_entry *, int, char *);
+bool tst_bit(char *, int);
+bool set_bit(char *, int);
+bool clr_bit(char *, int);
+bool get_block(mount_entry *, int, char *);
+int alloc_inode(mount_entry *);
+int alloc_block(mount_entry *);
+int add_dir_entry(minode *, dir_entry *);
 #endif

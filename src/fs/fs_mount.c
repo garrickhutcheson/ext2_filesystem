@@ -4,10 +4,10 @@ int fs_init() {
   int i, j;
   // initialize all minodes
   for (i = 0; i < NUM_MINODES; i++)
-    minode_arr[i].refCount = 0;
+    minode_arr[i].ref_count = 0;
   // initialize mount entries
   for (i = 0; i < NUM_MOUNT_ENTRIES; i++)
-    mount_entry_arr[i].fd = 0;
+    mount_entry_arr[i].mounted = false;
   // initialize PROCs
   for (i = 0; i < NUM_PROCS; i++) {
     proc_arr[i].status = PROC_FREE;
@@ -26,51 +26,47 @@ int fs_init() {
   return 0;
 }
 
-int mount_root(char *dev_path) {
-  int i;
+mount_entry *mount_device(char *dev_path, char *mnt_path) {
   mount_entry *me;
-  super_block *sb;
-  group_desc *gd;
+  int meno;
   char buf[BLKSIZE_1024];
   int dev = open(dev_path, O_RDWR);
   if (dev < 0) {
-    printf("panic : can’t open root device\n");
+    printf("panic : can’t open device\n");
     exit(1);
   }
-  /* get super block of device */
-  get_block(dev, 1, buf);
-  sb = (super_block *)buf;
-  /* check magic number */
-  if (sb->s_magic != EXT2_SUPER_MAGIC) {
-    printf("super magic=%x : %s is not an EXT2 filesys\n", sb->s_magic,
-           dev_path);
-    exit(0);
+  // find next mount entry
+  for (meno = 0; meno < NUM_MOUNT_ENTRIES + 1; meno++) {
+    if (meno == NUM_MOUNT_ENTRIES) {
+      printf("panic: cannot mount");
+      return NULL;
+    }
+    me = &mount_entry_arr[meno];
+    break;
   }
-  // fill mount table root with device information
-  me = &mount_entry_arr[0];
+
+  // set fd and names
   me->fd = dev;
   strcpy(me->dev_path, dev_path);
-  strcpy(me->mnt_path, "/");
-  // copy super block info into mount entry
-  me->super_block = *sb;
-  // get group descriptor from device
-  get_block(dev, 2, buf);
-  gd = (group_desc *)buf;
-  // copy group descriptor into mount entry
-  me->group_desc = *gd;
+  strcpy(me->mnt_path, mnt_path);
 
-  DEBUG_PRINT("block_bitmap=%d inode_bitmap=%d inode_table=%d\n",
-              me->group_desc.bg_block_bitmap, me->group_desc.bg_inode_bitmap,
-              me->group_desc.bg_inode_table);
-  // call get_minode(), which inc minode’s refCount
-  me->root = get_minode(dev, 2);
-  // set global root
-  global_root = me->root;
-  // double link
-  global_root->mount_entry = me;
-  // set proc CWDs
-  for (i = 0; i < NUM_PROCS; i++)         // set proc’s CWD
-    proc_arr[i].cwd = get_minode(dev, 2); // increments refCount
-  DEBUG_PRINT("mount : %s mounted on / \n", dev_path);
-  return 0;
+  // get super block to me
+  get_block(me, 1, buf);
+  me->super_block = *(super_block *)buf;
+
+  // check magic number
+  if (me->super_block.s_magic != EXT2_SUPER_MAGIC) {
+    printf("not an EXT2 filesystem please umount\n");
+    exit(0);
+  }
+
+  // get group descriptor to me
+  get_block(me, 2, buf);
+  me->group_desc = *(group_desc *)buf;
+
+  // call get_minode(), which inc minode’s ref_count
+  me->root = get_minode(me, 2);
+
+  DEBUG_PRINT("mounted %s to with fd %d\n", me->mnt_path, me->fd);
+  return me;
 }

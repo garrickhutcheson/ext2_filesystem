@@ -3,7 +3,7 @@
 bool do_cd(cmd *c) {
   minode *dest;
   if (c->argc < 2)
-    dest = global_root;
+    dest = global_root_inode;
   else {
     path p, *in_path = &p;
     parse_path(c->argv[1], in_path);
