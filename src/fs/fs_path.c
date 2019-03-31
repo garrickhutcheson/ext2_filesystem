@@ -47,17 +47,17 @@ int parse_path(char *path_name, path *buf_path) {
 }
 
 // checks directory for a file
-bool search_dir(minode *mip, char *dir_name) {
+int search_dir(minode *mip, char *dir_name) {
   int i;
   char *fs_p, temp[256], buf[BLKSIZE_1024] = {0}, *b = buf;
   dir_entry *dep;
   if (!S_ISDIR(mip->inode.i_mode))
-    return false;
+    return 0;
   // search dir_entry direct blocks only
   for (i = 0; i < 12; i++) {
     // if direct block is null stap
     if (mip->inode.i_block[i] == 0)
-      return false;
+      return 0;
     // get next direct block
     get_block(mip->mount_entry, mip->inode.i_block[i], buf);
     dep = (dir_entry *)buf;
@@ -74,7 +74,7 @@ bool search_dir(minode *mip, char *dir_name) {
       dep = (dir_entry *)fs_p;
     }
   }
-  return true;
+  return 0;
 }
 
 // returns an array of dir_entry from a dir minode
@@ -128,7 +128,7 @@ minode *search_path(path *target_path) {
     // release current minode
     put_minode(mip);
     // switch to new minode
-    mip = get_minode(&mount_entry_arr[0], ino);
+    mip = get_minode(mip->mount_entry, ino);
   }
   return mip;
 }

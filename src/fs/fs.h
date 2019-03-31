@@ -171,7 +171,7 @@ mount_entry *mount_device(char *, char *);
 
 // fs_path
 int parse_path(char *, path *);
-bool search_dir(minode *, char *);
+int search_dir(minode *, char *);
 minode *search_path(path *);
 int list_dir(minode *mip, dir_entry *);
 

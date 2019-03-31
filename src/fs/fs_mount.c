@@ -42,10 +42,12 @@ mount_entry *mount_device(char *dev_path, char *mnt_path) {
       return NULL;
     }
     me = &mount_entry_arr[meno];
-    break;
+    if (!me->mounted)
+      break;
   }
 
   // set fd and names
+  me->mounted = true;
   me->fd = dev;
   strcpy(me->dev_path, dev_path);
   strcpy(me->mnt_path, mnt_path);

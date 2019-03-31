@@ -10,7 +10,7 @@ int alloc_inode(mount_entry *me) {
   // read inode_bitmap block
   get_block(me, me->group_desc.bg_inode_bitmap, buf);
 
-  for (int i = 0; i < NUM_MINODES; i++) {
+  for (int i = 0; i < me->super_block.s_inodes_count; i++) {
     if (tst_bit(buf, i) == 0) {
       set_bit(buf, i);
       me->group_desc.bg_free_inodes_count--;
@@ -53,7 +53,7 @@ int alloc_block(mount_entry *me) {
   // read inode_bitmap block
   get_block(me, me->group_desc.bg_block_bitmap, buf);
 
-  for (int i = 0; i < NUM_MINODES; i++) {
+  for (int i = 0; i < me->super_block.s_blocks_count; i++) {
     if (tst_bit(buf, i) == 0) {
       set_bit(buf, i);
       me->group_desc.bg_free_blocks_count--;
