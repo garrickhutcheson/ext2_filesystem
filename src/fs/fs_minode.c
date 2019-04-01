@@ -13,9 +13,9 @@ minode *alloc_minode() {
   return NULL;
 }
 
-// release a used minode
+// release a used minode. However, root is always referenced.
 bool free_minode(minode *mip) {
-  mip->ref_count = 0;
+  mip->ref_count = mip == global_root_inode ? 1 : 0;
   return true;
 }
 
@@ -61,7 +61,11 @@ bool put_minode(minode *mip) {
   mip->ref_count--;
   if (mip->ref_count > 0)
     return false;
+  // ROOT NEVER FREE. ROOT STAY FOREVER
+  if (global_root_inode->ref_count < 1)
+    global_root_inode->ref_count = 1;
   if (mip->dirty == 0)
+
     return false;
   block = (mip->ino - 1) / 8 + mount_entry_arr[0].group_desc.bg_inode_table;
   offset = (mip->ino - 1) % 8;

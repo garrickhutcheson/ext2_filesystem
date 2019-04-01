@@ -3,14 +3,14 @@
 int ls_file(minode *file, char *fname) {
   char *t1 = "xwrxwrxwr-------";
   char *t2 = "----------------";
-  char ftime[256], buf[256] = {0}, *p_buf = buf;
+  char ftime[256], buf[256] = {0};
   int r, i;
   if (check_mode(&file->inode, REG_FILE)) // if (S_ISREG())
-    p_buf = stpcpy(p_buf, "-");
-  if (check_mode(&file->inode, DIR_FILE)) // if (S_ISDIR())
-    p_buf = stpcpy(p_buf, "d");
-  if (check_mode(&file->inode, LNK_FILE)) // if (S_ISLNK())
-    p_buf = stpcpy(p_buf, "l");
+    printf("-");
+  else if (check_mode(&file->inode, DIR_FILE)) // if (S_ISDIR())
+    printf("d");
+  else if (check_mode(&file->inode, LNK_FILE)) // if (S_ISLNK())
+    printf("l");
   for (i = 8; i >= 0; i--) {
     if ((file->inode.i_mode & (1 << i))) // print r|w|x
       printf("%c", t1[i]);
@@ -32,21 +32,20 @@ int ls_file(minode *file, char *fname) {
 
 bool do_ls(cmd *c) {
   dir_entry dep[4096];
-  minode *cur_dir = running->cwd;
+  minode *cur_dir = NULL;
   int entryc;
 
-  if (c->argc < 2)
-    entryc = list_dir(cur_dir, dep);
-  else {
+  if (c->argc < 2) {
+    cur_dir = running->cwd;
+    cur_dir->ref_count++;
+  } else {
     path in_path;
     parse_path(c->argv[1], &in_path);
-    minode m;
     cur_dir = search_path(&in_path);
     if (!cur_dir)
-      return 1;
-    entryc = list_dir(cur_dir, dep);
-    // put_minode(cur_dir);
+      return false;
   }
+  entryc = list_dir(cur_dir, dep);
   for (int i = 0; i < entryc; i++) {
     minode *file = get_minode(cur_dir->mount_entry, dep[i].inode);
     // printf("%s\n", dep[i].name);
@@ -56,7 +55,6 @@ bool do_ls(cmd *c) {
 
     put_minode(file);
   }
-  if (cur_dir)
-    put_minode(cur_dir);
-  return 0;
+  put_minode(cur_dir);
+  return true;
 }

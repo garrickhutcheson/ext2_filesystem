@@ -127,9 +127,7 @@ minode *search_path(path *target_path) {
       put_minode(mip);
       return NULL;
     }
-    // release current minode if not cwd or root
-    if (!(mip == running->cwd || mip == global_root_inode))
-      put_minode(mip);
+    put_minode(mip);
     // switch to new minode
     mip = get_minode(mip->mount_entry, ino);
   }
