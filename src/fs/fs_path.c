@@ -105,6 +105,8 @@ int list_dir(minode *mip, dir_entry *dir_arr) {
 }
 
 // must put_minode on returned minode when done
+// returns found minode on success
+// returns NULL on failure
 minode *search_path(path *target_path) {
   minode *mip;
   int i, ino;
@@ -125,8 +127,9 @@ minode *search_path(path *target_path) {
       put_minode(mip);
       return NULL;
     }
-    // release current minode
-    put_minode(mip);
+    // release current minode if not cwd or root
+    if (!(mip == running->cwd || mip == global_root_inode))
+      put_minode(mip);
     // switch to new minode
     mip = get_minode(mip->mount_entry, ino);
   }
