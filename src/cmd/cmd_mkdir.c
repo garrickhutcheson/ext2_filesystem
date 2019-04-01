@@ -18,7 +18,6 @@ bool do_mkdir(cmd *c) {
   int ino = alloc_inode(parent->mount_entry);
   int bno = alloc_block(parent->mount_entry);
   minode *child = get_minode(parent->mount_entry, ino);
-  child->inode.i_block[0] = bno;
   child->inode.i_mode = 0x41ED;       // OR 040755: DIR type and permissions
   child->inode.i_uid = running->uid;  // Owner uid
   child->inode.i_gid = running->gid;  // Group Id
@@ -29,6 +28,7 @@ bool do_mkdir(cmd *c) {
   child->inode.i_block[0] = bno; // new DIR has one data block
   child->dirty = true;
   // make .
+
   dir_entry cd, *child_dir = &cd;
   child_dir->inode = child->ino;
   strcpy(child_dir->name, ".");
