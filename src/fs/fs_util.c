@@ -128,10 +128,18 @@ int add_dir_entry(minode *mip, dir_entry *new_dirp) {
   // set dirp rec_len to ideal
   new_dirp->rec_len = ideal_len(new_dirp);
 
-  // iterate through blocks
-  for (int i = 0; i < 12; i++) { // search direct blocks only
-    if (mip->inode.i_block[i] == 0)
-      return 0; // todo: alloc a new block if none available
+  // iterate through direct blocks
+  for (int i = 0; i < 12; i++) {
+    // if allocating a new block insert record as first entry
+    if (mip->inode.i_block[i] == 0) {
+      mip->inode.i_block[i] = alloc_block(mip->mount_entry);
+      get_block(mip->mount_entry, mip->inode.i_block[i], buf);
+      cur_dirp = (dir_entry *)buf;
+      *cur_dirp = *new_dirp;
+      cur_dirp->rec_len = BLKSIZE_1024;
+      put_block(mip->mount_entry, mip->inode.i_block[i], buf);
+      return cur_dirp->rec_len;
+    }
     get_block(mip->mount_entry, mip->inode.i_block[i], buf);
     bufp = buf;
     // iterate through dir_entries to find space
@@ -142,9 +150,11 @@ int add_dir_entry(minode *mip, dir_entry *new_dirp) {
       free_space = cur_dirp->rec_len - ideal_len(cur_dirp);
       if (free_space > new_dirp->rec_len) {
         cur_dirp->rec_len = ideal_len(cur_dirp);
-        new_dirp->rec_len = free_space;
         bufp += cur_dirp->rec_len;
-        *(dir_entry *)bufp = *new_dirp;
+        int new_dirp_size = new_dirp->rec_len;
+        new_dirp->rec_len = free_space;
+        // using a memcpy here avoids over-writing the end of the buffer
+        memcpy(bufp, new_dirp, new_dirp->rec_len);
         // write buffer back to block
         put_block(mip->mount_entry, mip->inode.i_block[i], buf);
         return new_dirp->rec_len;

@@ -16,7 +16,7 @@ bool do_mkdir(cmd *c) {
     return false;
   }
   int ino = alloc_inode(parent->mount_entry);
-  int bno = alloc_block(parent->mount_entry);
+
   minode *child = get_minode(parent->mount_entry, ino);
   child->inode.i_mode = 0x41ED;       // OR 040755: DIR type and permissions
   child->inode.i_uid = running->uid;  // Owner uid
@@ -24,8 +24,10 @@ bool do_mkdir(cmd *c) {
   child->inode.i_size = BLKSIZE_1024; // Size in bytes
   child->inode.i_links_count = 2;     // Links count=2 because of . and ..
   child->inode.i_atime = child->inode.i_ctime = child->inode.i_mtime = time(0L);
-  child->inode.i_blocks = 2;     // LINUX: Blocks count in 512-byte chunks
-  child->inode.i_block[0] = bno; // new DIR has one data block
+  child->inode.i_blocks = 2; // LINUX: Blocks count in 512-byte chunks
+  for (int i; i < 15; i++) {
+    child->inode.i_block[i] = 0;
+  }
   child->dirty = true;
   // make .
 
