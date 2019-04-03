@@ -202,7 +202,7 @@ int rm_dir_entry(minode *mip, char *dir_name) {
     while (bufp < buf + BLKSIZE_1024) {
       snprintf(str, dep->rec_len + 1, "%s", dep->name);
       if (strcmp(dir_name, str) == 0) {
-        // if it's the only entry (should never happen)
+        // if it's the only entry
         if (bufp == buf) {
           free_block(mip->mount_entry, mip->inode.i_block[i]);
           mip->inode.i_block[i] = 0;
