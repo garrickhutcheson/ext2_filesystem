@@ -64,9 +64,9 @@ int search_dir(minode *mip, char *dir_name) {
     fs_p = buf;
     while (fs_p < buf + BLKSIZE_1024) {
       snprintf(temp, dep->rec_len + 1, "%s", dep->name);
-      DEBUG_PRINT("%8d%8d%8u %s\n", dep->inode, dep->rec_len, dep->name_len,
-                  temp);
-      if (strncmp(dir_name, dep->name, dep->name_len) == 0) {
+      DEBUG_PRINT("ino:%8d rec_len:%8d name_len:%8u name:%s\n", dep->inode,
+                  dep->rec_len, dep->name_len, temp);
+      if (strcmp(dir_name, temp) == 0) {
         DEBUG_PRINT("found %s : inumber = %d\n", dir_name, dep->inode);
         return dep->inode;
       }
@@ -101,6 +101,29 @@ int list_dir(minode *mip, dir_entry *dir_arr) {
     }
   }
   // todo: indirect and double indirect
+  return dirc;
+}
+
+// returns number of dir entries in mip
+int count_dir(minode *mip) {
+  char buf[BLKSIZE_1024], *bufp = buf;
+  dir_entry *dirp;
+  int dirc = 0;
+  if (!S_ISDIR(mip->inode.i_mode))
+    return 0;
+  for (int i = 0; i < 12; i++) { // search direct blocks only
+    if (mip->inode.i_block[i] == 0)
+      return dirc;
+    get_block(mip->mount_entry, mip->inode.i_block[i], buf);
+    dirp = (dir_entry *)buf;
+    bufp = buf;
+    // todo: double check this condition
+    while (bufp < buf + BLKSIZE_1024) {
+      dirp = (dir_entry *)bufp;
+      dirc++;
+      bufp += dirp->rec_len;
+    }
+  }
   return dirc;
 }
 

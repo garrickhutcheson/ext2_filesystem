@@ -64,6 +64,16 @@ int alloc_block(mount_entry *me) {
   return 0;
 }
 
+int free_block(mount_entry *me, int bno) {
+  char buf[BLKSIZE_1024];
+  // read inode_bitmap block
+  get_block(me, me->group_desc.bg_block_bitmap, buf);
+  clr_bit(buf, bno);
+  me->group_desc.bg_free_blocks_count++;
+  put_block(me, me->group_desc.bg_inode_bitmap, buf);
+  return 0;
+}
+
 // check if inode has the given file mode
 bool check_mode(inode *file, int mode) {
   if (((int)(file->i_mode & 0xF000)) == mode)
@@ -114,6 +124,7 @@ int ideal_len(dir_entry *dirp) { return 4 * ((8 + dirp->name_len + 3) / 4); }
 // mip - minode * to have entry added to it
 // dirp - dir_entry * to be added to *mip
 // dirp must have name, name_len, and inode set
+// increments mip link count make sure to put!
 int add_dir_entry(minode *mip, dir_entry *new_dirp) {
   char buf[BLKSIZE_1024], *bufp = buf;
   dir_entry *cur_dirp;
@@ -138,6 +149,7 @@ int add_dir_entry(minode *mip, dir_entry *new_dirp) {
       *cur_dirp = *new_dirp;
       cur_dirp->rec_len = BLKSIZE_1024;
       put_block(mip->mount_entry, mip->inode.i_block[i], buf);
+      mip->inode.i_links_count++;
       return cur_dirp->rec_len;
     }
     get_block(mip->mount_entry, mip->inode.i_block[i], buf);
@@ -157,10 +169,66 @@ int add_dir_entry(minode *mip, dir_entry *new_dirp) {
         memcpy(bufp, new_dirp, new_dirp->rec_len);
         // write buffer back to block
         put_block(mip->mount_entry, mip->inode.i_block[i], buf);
+        mip->inode.i_links_count++;
         return new_dirp->rec_len;
       }
 
       bufp += cur_dirp->rec_len;
+    }
+  }
+  return 0;
+}
+
+// mip - minode * to have entry added to it
+// dirp - dir_entry * to be added to *mip
+// dirp must have name, name_len, and inode set
+// increments mip link count make sure to put!
+int rm_dir_entry(minode *mip, char *dir_name) {
+  int i;
+  char buf[BLKSIZE_1024], *bufp, *prev;
+  char str[256];
+  dir_entry *dep;
+  if (!S_ISDIR(mip->inode.i_mode)) {
+    DEBUG_PRINT("attempt to remove non-dir");
+    return 0;
+  }
+  // search dir_entry direct blocks only
+  for (i = 0; i < 12; i++) {
+    if (mip->inode.i_block[i] == 0)
+      return 0;
+    get_block(mip->mount_entry, mip->inode.i_block[i], buf);
+    dep = (dir_entry *)buf;
+    bufp = buf;
+    while (bufp < buf + BLKSIZE_1024) {
+      snprintf(str, dep->rec_len + 1, "%s", dep->name);
+      if (strcmp(dir_name, str) == 0) {
+        // if it's the only entry (should never happen)
+        if (bufp == buf) {
+          free_block(mip->mount_entry, mip->inode.i_block[i]);
+          mip->inode.i_block[i] = 0;
+          // if last entry
+        } else if (bufp + dep->rec_len >= buf + BLKSIZE_1024) {
+          ((dir_entry *)prev)->rec_len += dep->rec_len;
+          // if middle entry
+        } else {
+          // shift entries
+          while (bufp < buf + BLKSIZE_1024) {
+            prev = bufp;
+            bufp += dep->rec_len;
+            dep = (dir_entry *)bufp;
+            *(dir_entry *)prev = *dep;
+          }
+          dep->rec_len = buf + BLKSIZE_1024 - prev;
+        }
+        put_block(mip->mount_entry, mip->inode.i_block[i], buf);
+        mip->inode.i_links_count--;
+        mip->inode.i_atime = mip->inode.i_ctime = mip->inode.i_mtime = time(0L);
+        mip->dirty = true;
+        return dep->inode;
+      }
+      prev = bufp;
+      bufp += dep->rec_len;
+      dep = (dir_entry *)bufp;
     }
   }
   return 0;

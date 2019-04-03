@@ -10,6 +10,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 //// TYPEDEF ////
@@ -173,7 +174,8 @@ mount_entry *mount_device(char *, char *);
 int parse_path(char *, path *);
 int search_dir(minode *, char *);
 minode *search_path(path *);
-int list_dir(minode *mip, dir_entry *);
+int list_dir(minode *, dir_entry *);
+int count_dir(minode *);
 
 // fs_util
 bool check_mode(inode *, int);
@@ -184,6 +186,8 @@ bool set_bit(char *, int);
 bool clr_bit(char *, int);
 bool get_block(mount_entry *, int, char *);
 int alloc_inode(mount_entry *);
+int free_block(mount_entry *, int);
 int alloc_block(mount_entry *);
 int add_dir_entry(minode *, dir_entry *);
+int rm_dir_entry(minode *, char *);
 #endif

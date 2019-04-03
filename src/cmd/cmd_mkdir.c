@@ -22,15 +22,15 @@ bool do_mkdir(cmd *c) {
   child->inode.i_uid = running->uid;  // Owner uid
   child->inode.i_gid = running->gid;  // Group Id
   child->inode.i_size = BLKSIZE_1024; // Size in bytes
-  child->inode.i_links_count = 2;     // Links count=2 because of . and ..
+  child->inode.i_links_count = 0;     // incremented in add_dir_entry
   child->inode.i_atime = child->inode.i_ctime = child->inode.i_mtime = time(0L);
   child->inode.i_blocks = 2; // LINUX: Blocks count in 512-byte chunks
-  for (int i; i < 15; i++) {
+  for (int i = 0; i < 15; i++)
     child->inode.i_block[i] = 0;
-  }
-  child->dirty = true;
-  // make .
 
+  child->dirty = true;
+
+  // make .
   dir_entry cd, *child_dir = &cd;
   child_dir->inode = child->ino;
   strcpy(child_dir->name, ".");
