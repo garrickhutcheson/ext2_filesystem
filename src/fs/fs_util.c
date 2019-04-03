@@ -50,14 +50,14 @@ bool put_block(mount_entry *me, int blk, char *buf) {
 int alloc_block(mount_entry *me) {
   char buf[BLKSIZE_1024];
 
-  // read inode_bitmap block
+  // read block_bitmap block
   get_block(me, me->group_desc.bg_block_bitmap, buf);
 
   for (int i = 0; i < me->super_block.s_blocks_count; i++) {
     if (tst_bit(buf, i) == 0) {
       set_bit(buf, i);
       me->group_desc.bg_free_blocks_count--;
-      put_block(me, me->group_desc.bg_inode_bitmap, buf);
+      put_block(me, me->group_desc.bg_block_bitmap, buf);
       return i + 1;
     }
   }
@@ -66,11 +66,11 @@ int alloc_block(mount_entry *me) {
 
 int free_block(mount_entry *me, int bno) {
   char buf[BLKSIZE_1024];
-  // read inode_bitmap block
+  // read block_bitmap block
   get_block(me, me->group_desc.bg_block_bitmap, buf);
   clr_bit(buf, bno);
   me->group_desc.bg_free_blocks_count++;
-  put_block(me, me->group_desc.bg_inode_bitmap, buf);
+  put_block(me, me->group_desc.bg_block_bitmap, buf);
   return 0;
 }
 
