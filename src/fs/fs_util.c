@@ -74,14 +74,6 @@ int free_block(mount_entry *me, int bno) {
   return 0;
 }
 
-// check if inode has the given file mode
-bool check_mode(inode *file, int mode) {
-  if (((int)(file->i_mode & 0xF000)) == mode)
-    return true;
-  else
-    return false;
-}
-
 // tests the nth bit of a buffer
 // return value of bit
 // buf - buffer to test
@@ -132,7 +124,7 @@ int add_dir_entry(minode *mip, dir_entry *new_dirp) {
   int free_space;
 
   // check if dir
-  if (!check_mode(&mip->inode, DIR_FILE)) {
+  if (!S_ISDIR(mip->inode.i_mode)) {
     printf("cannot mkdir in a file\n");
     return 0;
   }

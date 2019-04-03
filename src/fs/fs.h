@@ -63,8 +63,6 @@ typedef struct ext2_dir_entry_2 dir_entry;
 
 //// STRUCTS ////
 
-// oft, proc, minode, mount_entry
-
 // for parsing paths into
 typedef struct path {
   char argv[4096][64]; // count of strings
@@ -131,7 +129,6 @@ typedef struct mount_entry {
   group_desc group_desc;
 } mount_entry;
 
-// REMOVED
 // bmap == dev_gd->bg_block_bitmap;
 // imap == dev_gd->bg_inode_bitmap;
 // iblock == dev_gd->bg_inode_table;
@@ -178,7 +175,6 @@ int list_dir(minode *, dir_entry *);
 int count_dir(minode *);
 
 // fs_util
-bool check_mode(inode *, int);
 bool get_block(mount_entry *, int, char *);
 bool put_block(mount_entry *, int, char *);
 bool tst_bit(char *, int);

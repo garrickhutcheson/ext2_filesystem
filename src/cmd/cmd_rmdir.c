@@ -8,7 +8,7 @@ bool do_rmdir(cmd *c) {
     return false;
   }
   minode *mip = search_path(&in_path);
-  if (!check_mode(&mip->inode, DIR_FILE)) {
+  if (!S_ISDIR(mip->inode.i_mode)) {
     printf("Can't rm non-directory\n");
     put_minode(mip);
     return false;

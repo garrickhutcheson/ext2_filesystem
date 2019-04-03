@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../fs/fs.h"
-#include <libgen.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
@@ -29,5 +28,4 @@ bool do_unlink(cmd *);
 // utility
 bool do_cmd(cmd *c);
 int parse_cmd(char *, cmd *);
-int spawn_proc(int, int, cmd *);
 void print_path(minode *mip);

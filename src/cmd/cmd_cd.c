@@ -10,7 +10,7 @@ bool do_cd(cmd *c) {
     if ((dest = search_path(in_path)) == NULL)
       return false;
   }
-  if (!check_mode(&dest->inode, DIR_FILE))
+  if (!S_ISDIR(dest->inode.i_mode))
     return false;
   put_minode(running->cwd);
   running->cwd = dest;

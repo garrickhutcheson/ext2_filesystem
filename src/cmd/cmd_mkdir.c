@@ -11,7 +11,7 @@ bool do_mkdir(cmd *c) {
 
   in_path.argc--;
   minode *parent = search_path(&in_path);
-  if (!check_mode(&parent->inode, DIR_FILE)) {
+  if (!S_ISDIR(parent->inode.i_mode)) {
     printf("Can't add file to non-directory\n");
     return false;
   }

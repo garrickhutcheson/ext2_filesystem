@@ -15,9 +15,7 @@ bool do_link(cmd *c) {
   dest_path.argc--;
   minode *dest_parent = search_path(&dest_path);
   minode *src = search_path(&src_path);
-
-  if (!(check_mode(&src->inode, REG_FILE) ||
-        check_mode(&src->inode, LNK_FILE))) {
+  if (!(S_ISREG(src->inode.i_mode) || S_ISLNK(src->inode.i_mode))) {
     printf("cannot link this type of file\n");
     return false;
   }

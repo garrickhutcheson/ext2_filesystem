@@ -5,11 +5,11 @@ int ls_file(minode *file, char *fname) {
   char *t2 = "----------------";
   char ftime[256], buf[256] = {0};
   int r, i;
-  if (check_mode(&file->inode, REG_FILE)) // if (S_ISREG())
+  if (S_ISREG(file->inode.i_mode))
     printf("-");
-  else if (check_mode(&file->inode, DIR_FILE)) // if (S_ISDIR())
+  else if (S_ISDIR(file->inode.i_mode))
     printf("d");
-  else if (check_mode(&file->inode, LNK_FILE)) // if (S_ISLNK())
+  else if (S_ISLNK(file->inode.i_mode))
     printf("l");
   for (i = 8; i >= 0; i--) {
     if ((file->inode.i_mode & (1 << i))) // print r|w|x
