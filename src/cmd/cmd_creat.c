@@ -37,6 +37,7 @@ bool do_creat(cmd *c) {
   add_dir_entry(parent, parent_child_dir);
 
   // write back to disk / put
+  put_minode(parent);
   put_minode(child);
   return true;
 }

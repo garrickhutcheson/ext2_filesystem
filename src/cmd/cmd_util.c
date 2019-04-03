@@ -93,6 +93,7 @@ void print_path(minode *mip) {
         }
       }
     }
+    put_minode(mip);
     print_path(mip); // recursive call
     printf("/%s", name);
   }
