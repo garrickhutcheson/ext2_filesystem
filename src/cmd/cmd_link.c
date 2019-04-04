@@ -28,6 +28,7 @@ bool do_link(cmd *c) {
   add_dir_entry(dest_parent, dep);
   src->inode.i_links_count++;
 
+  DEBUG_PRINT("link file with ino %d", src->ino);
   // write back to disk / put
   put_minode(src);
   put_minode(dest_parent);

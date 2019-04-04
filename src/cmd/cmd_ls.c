@@ -42,8 +42,10 @@ bool do_ls(cmd *c) {
     path in_path;
     parse_path(c->argv[1], &in_path);
     cur_dir = search_path(&in_path);
-    if (!cur_dir)
+    if (!cur_dir) {
+      printf("invalid path\n");
       return false;
+    }
   }
   entryc = list_dir(cur_dir, dep);
   for (int i = 0; i < entryc; i++) {

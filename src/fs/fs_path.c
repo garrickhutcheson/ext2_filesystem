@@ -46,13 +46,17 @@ int parse_path(char *path_name, path *buf_path) {
   return buf_path->argc;
 }
 
-// checks directory for a file
+// todo: refactor search_dir, list_dir, count_dir
+
 int search_dir(minode *mip, char *dir_name) {
   int i;
   char *fs_p, temp[256], buf[BLKSIZE_1024] = {0}, *b = buf;
   dir_entry *dep;
-  if (!S_ISDIR(mip->inode.i_mode))
+  DEBUG_PRINT("search for %s\n", dir_name);
+  if (!S_ISDIR(mip->inode.i_mode)) {
+    DEBUG_PRINT("search fail %s is not a dir\n", dir_name);
     return 0;
+  }
   // search dir_entry direct blocks only
   for (i = 0; i < 12; i++) {
     // if direct block is null stap
@@ -63,8 +67,8 @@ int search_dir(minode *mip, char *dir_name) {
     dep = (dir_entry *)buf;
     fs_p = buf;
     while (fs_p < buf + BLKSIZE_1024) {
-      snprintf(temp, dep->rec_len + 1, "%s", dep->name);
-      DEBUG_PRINT("ino:%8d rec_len:%8d name_len:%8u name:%s\n", dep->inode,
+      snprintf(temp, dep->name_len + 1, "%s", dep->name);
+      DEBUG_PRINT("ino:%d rec_len:%d name_len:%u name:%s\n", dep->inode,
                   dep->rec_len, dep->name_len, temp);
       if (strcmp(dir_name, temp) == 0) {
         DEBUG_PRINT("found %s : inumber = %d\n", dir_name, dep->inode);
@@ -84,8 +88,10 @@ int list_dir(minode *mip, dir_entry *dir_arr) {
   char *fs_p, buf[BLKSIZE_1024];
   dir_entry *dirp;
   int dirc = 0;
-  if (!S_ISDIR(mip->inode.i_mode))
+  if (!S_ISDIR(mip->inode.i_mode)) {
+    DEBUG_PRINT("list fail ino %d is not a dir\n", mip->ino);
     return 0;
+  }
   for (int i = 0; i < 12; i++) { // search direct blocks only
     if (mip->inode.i_block[i] == 0)
       return dirc;

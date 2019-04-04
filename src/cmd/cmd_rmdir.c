@@ -4,7 +4,7 @@ bool do_rmdir(cmd *c) {
   path in_path;
   parse_path(c->argv[1], &in_path);
   if (c->argc < 2) {
-    printf("mkdir requires path\n");
+    printf("rmdir requires path\n");
     return false;
   }
   minode *mip = search_path(&in_path);

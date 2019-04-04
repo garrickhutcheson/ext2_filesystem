@@ -36,6 +36,7 @@ bool do_creat(cmd *c) {
   parent_child_dir->name_len = strlen(parent_child_dir->name);
   add_dir_entry(parent, parent_child_dir);
 
+  DEBUG_PRINT("creat file with ino %d\n", child->ino);
   // write back to disk / put
   put_minode(parent);
   put_minode(child);

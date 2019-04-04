@@ -181,19 +181,22 @@ int rm_dir_entry(minode *mip, char *dir_name) {
   char buf[BLKSIZE_1024], *bufp, *prev;
   char str[256];
   dir_entry *dep;
+  int freed_space;
   if (!S_ISDIR(mip->inode.i_mode)) {
     DEBUG_PRINT("attempt to remove non-dir");
     return 0;
   }
   // search dir_entry direct blocks only
   for (i = 0; i < 12; i++) {
-    if (mip->inode.i_block[i] == 0)
+    if (mip->inode.i_block[i] == 0) {
+      DEBUG_PRINT("dir_entry not found");
       return 0;
+    }
     get_block(mip->mount_entry, mip->inode.i_block[i], buf);
     dep = (dir_entry *)buf;
     bufp = buf;
     while (bufp < buf + BLKSIZE_1024) {
-      snprintf(str, dep->rec_len + 1, "%s", dep->name);
+      snprintf(str, dep->name_len + 1, "%s", dep->name);
       if (strcmp(dir_name, str) == 0) {
         // if it's the only entry
         if (bufp == buf) {
@@ -204,14 +207,18 @@ int rm_dir_entry(minode *mip, char *dir_name) {
           ((dir_entry *)prev)->rec_len += dep->rec_len;
           // if middle entry
         } else {
-          // shift entries
-          while (bufp < buf + BLKSIZE_1024) {
-            prev = bufp;
+          dep = (dir_entry *)bufp;
+          freed_space = dep->rec_len;
+          // copy everything in block after current record onto current record
+          memcpy(bufp, bufp + dep->rec_len,
+                 (buf + BLKSIZE_1024) - (bufp + dep->rec_len));
+          // find last record
+          while (bufp + dep->rec_len < buf + BLKSIZE_1024 - freed_space) {
             bufp += dep->rec_len;
             dep = (dir_entry *)bufp;
-            *(dir_entry *)prev = *dep;
           }
-          dep->rec_len = buf + BLKSIZE_1024 - prev;
+          // give him some extra room
+          dep->rec_len += freed_space;
         }
         put_block(mip->mount_entry, mip->inode.i_block[i], buf);
         mip->inode.i_links_count--;

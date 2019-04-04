@@ -2,11 +2,11 @@
 
 bool do_mkdir(cmd *c) {
   path in_path;
-  parse_path(c->argv[1], &in_path);
   if (c->argc < 2) {
     printf("mkdir requires path\n");
     return false;
   }
+  parse_path(c->argv[1], &in_path);
   char *bname = in_path.argv[in_path.argc - 1];
 
   in_path.argc--;
@@ -54,32 +54,3 @@ bool do_mkdir(cmd *c) {
   put_minode(child);
   return true;
 }
-/*
-int make_dir()
-{
-1. pahtname = "/a/b/c" start mip = root;         dev = root->dev;
-        =  "a/b/c" start mip = running->cwd; dev = running->cwd->dev;
-
-2. Let
- parent = dirname(pathname);   parent= "/a/b" OR "a/b"
- child  = basename(pathname);  child = "c"
-
-WARNING: strtok(), dirname(), basename() destroy pathname
-
-3. Get the In_MEMORY minode of parent:
-
-     pino  = getino(parent);
-     pip   = iget(dev, pino);
-
-Verify : (1). parent INODE is a DIR (HOW?)   AND
-        (2). child does NOT exists in the parent directory (HOW?);
-
-4. call mymkdir(pip, child);
-
-5. inc parent inodes's link count by 1;
-touch its atime and mark it DIRTY
-
-6. iput(pip);
-
-}
-*/
