@@ -117,11 +117,15 @@ int ideal_len(dir_entry *dirp) { return 4 * ((8 + dirp->name_len + 3) / 4); }
 // dirp - dir_entry * to be added to *mip
 // dirp must have name, name_len, and inode set
 // increments mip link count make sure to put!
-// todo: check to make sure same name doesn't exist
 int add_dir_entry(minode *mip, dir_entry *new_dirp) {
-  char buf[BLKSIZE_1024], *bufp = buf;
+  char buf[BLKSIZE_1024], *bufp = buf, name[256];
   dir_entry *cur_dirp;
   int free_space;
+  snprint(name, new_dirp->name_len + 1, "%s", new_dirp->name);
+  if (search_dir(mip, name)) {
+    printf("dir_entry by name of %s already exists", name);
+    return 0;
+  }
 
   // check if dir
   if (!S_ISDIR(mip->inode.i_mode)) {

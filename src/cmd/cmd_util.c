@@ -40,6 +40,8 @@ bool do_cmd(cmd *c) {
     do_touch(c);
   } else if (!strcmp(c->argv[0], "unlink")) {
     do_unlink(c);
+  } else if (!strcmp(c->argv[0], "entries")) {
+    do_entries(c);
   } else if (!strcmp(c->argv[0], "quit")) {
     exit(0);
   } else {

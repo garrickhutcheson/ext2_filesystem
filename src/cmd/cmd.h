@@ -24,6 +24,7 @@ bool do_stat(cmd *);
 bool do_symlink(cmd *);
 bool do_touch(cmd *);
 bool do_unlink(cmd *);
+int do_entries(cmd *);
 
 // utility
 bool do_cmd(cmd *c);
