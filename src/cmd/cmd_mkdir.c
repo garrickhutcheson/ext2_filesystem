@@ -1,6 +1,7 @@
 #include "cmd.h"
 
 bool do_mkdir(cmd *c) {
+  minode *exists;
   path in_path;
   if (c->argc < 2) {
     printf("mkdir requires path\n");
@@ -8,7 +9,11 @@ bool do_mkdir(cmd *c) {
   }
   parse_path(c->argv[1], &in_path);
   char *bname = in_path.argv[in_path.argc - 1];
-
+  if (exists = search_path(&in_path)) {
+    printf("%s already exists\n", c->argv[1]);
+    put_minode(exists);
+    return false;
+  }
   in_path.argc--;
   minode *parent = search_path(&in_path);
   if (!S_ISDIR(parent->inode.i_mode)) {

@@ -112,7 +112,7 @@ int list_dir(minode *mip, dir_entry *dir_arr) {
 
 // returns number of dir entries in mip
 int count_dir(minode *mip) {
-  char buf[BLKSIZE_1024], *bufp = buf;
+  char buf[BLKSIZE_1024], *bufp = buf, temp[256];
   dir_entry *dirp;
   int dirc = 0;
   if (!S_ISDIR(mip->inode.i_mode))
@@ -125,9 +125,12 @@ int count_dir(minode *mip) {
     bufp = buf;
     // todo: double check this condition
     while (bufp < buf + BLKSIZE_1024) {
-      dirp = (dir_entry *)bufp;
+      snprintf(temp, dirp->name_len + 1, "%s", dirp->name);
+      DEBUG_PRINT("ino:%d rec_len:%d name_len:%u name:%s\n", dirp->inode,
+                  dirp->rec_len, dirp->name_len, temp);
       dirc++;
       bufp += dirp->rec_len;
+      dirp = (dir_entry *)bufp;
     }
   }
   return dirc;

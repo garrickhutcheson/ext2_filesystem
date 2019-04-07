@@ -1,7 +1,6 @@
 {
     "version": "2.0.0",
-    "tasks": [
-        {
+    "tasks": [{
             "label": "Build/Dev",
             "type": "shell",
             "command": "gcc",
@@ -25,6 +24,7 @@
                 "src/cmd/cmd_symlink.c",
                 "src/cmd/cmd_touch.c",
                 "src/cmd/cmd_unlink.c",
+                "src/cmd/cmd_entries.c",
                 "-g",
                 "-m32",
                 "-o",
