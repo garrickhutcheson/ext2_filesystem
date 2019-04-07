@@ -10,7 +10,7 @@ bool do_mkdir(cmd *c) {
   parse_path(c->argv[1], &in_path);
   char *bname = in_path.argv[in_path.argc - 1];
   if (exists = search_path(&in_path)) {
-    printf("%s already exists", c->argv[1]);
+    printf("%s already exists\n", c->argv[1]);
     put_minode(exists);
     return false;
   }
