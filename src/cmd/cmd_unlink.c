@@ -1,19 +1,35 @@
 #include "cmd.h"
 
 bool do_unlink(cmd *c) {
-  printf("command not yet implemented\n");
-  return 0;
+  path in_path;
+  minode *mip, *parent;
+  if (c->argc < 2) {
+    printf("stat requires: stat filename\n");
+    return false;
+  }
+  if (!parse_path(c->argv[1], &in_path) || !(mip = search_path(&in_path))) {
+    printf("bad path");
+    return false;
+  }
+  if (S_ISDIR(mip->inode.i_mode)) {
+    printf("Can't unlink directory\n");
+    put_minode(mip);
+    return false;
+  }
+  char *bname = in_path.argv[in_path.argc - 1];
+  in_path.argc--;
+  parent = search_path(&in_path);
+  mip->inode.i_links_count--;
+  if (!mip->inode.i_links_count) {
+    //         deallocate its data blocks by:
+    // rm_dir_entry(parent, bname);
+  }
+  mip->dirty = true;
+  parent->dirty = true;
+  put_minode(mip);
+  put_minode(parent);
 }
 // todo
-// 2.                     HOW TO unlink
-
-//      unlink pathname
-
-// (1). get pathname's INODE into memory
-
-// (2). verify it's a FILE (REG or LNK), can not be a DIR;
-
-// (3). decrement INODE's i_links_count by 1;
 
 // (4). if i_links_count == 0 ==> rm pathname by
 

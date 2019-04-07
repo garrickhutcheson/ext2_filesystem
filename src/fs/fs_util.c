@@ -21,6 +21,15 @@ int alloc_inode(mount_entry *me) {
   return 0;
 }
 
+int free_inode(mount_entry *me, int ino) {
+  char buf[BLKSIZE_1024];
+  get_block(me, me->group_desc.bg_inode_bitmap, buf);
+  clr_bit(buf, ino - 1);
+  me->group_desc.bg_free_inodes_count++;
+  put_block(me, me->group_desc.bg_inode_bitmap, buf);
+  return 0;
+}
+
 // read block to buffer
 bool get_block(mount_entry *me, int blk, char *buf) {
   lseek(me->fd, blk * BLKSIZE_1024, SEEK_SET);
@@ -224,6 +233,7 @@ int rm_dir_entry(minode *mip, char *dir_name) {
         mip->inode.i_links_count--;
         mip->inode.i_atime = mip->inode.i_ctime = mip->inode.i_mtime = time(0L);
         mip->dirty = true;
+        free_inode(mip->mount_entry, dep->inode);
         return dep->inode;
       }
       prev = bufp;
