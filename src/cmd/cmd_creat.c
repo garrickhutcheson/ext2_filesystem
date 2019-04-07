@@ -2,11 +2,11 @@
 
 bool do_creat(cmd *c) {
   path in_path;
-  parse_path(c->argv[1], &in_path);
   if (c->argc < 2) {
     printf("mkdir requires path\n");
     return false;
   }
+  parse_path(c->argv[1], &in_path);
   char *bname = in_path.argv[in_path.argc - 1];
 
   in_path.argc--;
