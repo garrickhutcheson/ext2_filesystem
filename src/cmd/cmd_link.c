@@ -15,6 +15,11 @@ bool do_link(cmd *c) {
   dest_path.argc--;
   minode *dest_parent = search_path(&dest_path);
   minode *src = search_path(&src_path);
+  if (!src || !dest_parent) {
+    printf("bad path\n");
+    return false;
+  }
+
   if (!(S_ISREG(src->inode.i_mode) || S_ISLNK(src->inode.i_mode))) {
     printf("cannot link this type of file\n");
     return false;
@@ -28,9 +33,11 @@ bool do_link(cmd *c) {
   add_dir_entry(dest_parent, dep);
   src->inode.i_links_count++;
 
-  DEBUG_PRINT("link file with ino %d", src->ino);
+  DEBUG_PRINT("link file with ino %d\n", src->ino);
   // write back to disk / put
+  src->dirty = true;
   put_minode(src);
+  dest_parent->dirty = true;
   put_minode(dest_parent);
   return true;
 }

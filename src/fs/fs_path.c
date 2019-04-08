@@ -152,16 +152,22 @@ minode *search_path(path *target_path) {
 
   // search for each token string
   for (i = 0; i < target_path->argc; i++) {
-    // get subdir by token
-    ino = search_dir(mip, target_path->argv[i]);
-    if (!ino) {
-      printf("no such component name %s\n", target_path->argv[i]);
+    if (S_ISLNK(mip->inode.i_mode)) {
+      path sym_path;
+      parse_path((char *)mip->inode.i_block, &sym_path);
+      mip = search_path(&sym_path);
+    } else {
+      ino = search_dir(mip, target_path->argv[i]);
+
+      if (!ino) {
+        printf("no such component name %s\n", target_path->argv[i]);
+        put_minode(mip);
+        return NULL;
+      }
       put_minode(mip);
-      return NULL;
+      // switch to new minode
+      mip = get_minode(mip->mount_entry, ino);
     }
-    put_minode(mip);
-    // switch to new minode
-    mip = get_minode(mip->mount_entry, ino);
   }
   return mip;
 }

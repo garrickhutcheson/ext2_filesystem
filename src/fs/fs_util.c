@@ -80,7 +80,7 @@ int free_block(mount_entry *me, int bno) {
   clr_bit(buf, bno);
   me->group_desc.bg_free_blocks_count++;
   put_block(me, me->group_desc.bg_block_bitmap, buf);
-  return 0;
+  return 1;
 }
 
 // tests the nth bit of a buffer
@@ -237,7 +237,6 @@ int rm_dir_entry(minode *mip, char *dir_name) {
         mip->inode.i_links_count--;
         mip->inode.i_atime = mip->inode.i_ctime = mip->inode.i_mtime = time(0L);
         mip->dirty = true;
-        free_inode(mip->mount_entry, dep->inode);
         return dep->inode;
       }
       prev = bufp;
@@ -246,4 +245,55 @@ int rm_dir_entry(minode *mip, char *dir_name) {
     }
   }
   return 0;
+}
+
+int free_i_block(minode *mip) {
+  char buf1[BLKSIZE_1024], buf2[BLKSIZE_1024], buf3[BLKSIZE_1024];
+  int *fs_p1, *fs_p2, *fs_p3, freed_blocks = 0;
+  path in_path;
+  // direct blocks
+  for (int i = 0; i < 12 && mip->inode.i_block[i]; i++)
+    freed_blocks += free_block(mip->mount_entry, mip->inode.i_block[i]);
+
+  // indirect blocks
+  if (!mip->inode.i_block[12])
+    return freed_blocks;
+  get_block(mip->mount_entry, mip->inode.i_block[12], buf1);
+  fs_p1 = (int *)buf1;
+  while (*fs_p1 && ((char *)fs_p1 < buf1 + BLKSIZE_1024))
+    freed_blocks += free_block(mip->mount_entry, *fs_p1);
+
+  // double indirect blocks
+  if (!mip->inode.i_block[13])
+    return freed_blocks;
+  get_block(mip->mount_entry, mip->inode.i_block[13], buf1);
+  fs_p1 = (int *)buf1;
+  while (*fs_p1 && ((char *)fs_p1 < buf1 + BLKSIZE_1024)) {
+    get_block(mip->mount_entry, *fs_p1, buf2);
+    fs_p2 = (int *)buf2;
+    while (*fs_p2 && ((char *)fs_p2 < buf2 + BLKSIZE_1024))
+      freed_blocks += free_block(mip->mount_entry, *fs_p2);
+    fs_p1++;
+  }
+
+  // triple indirect blocks
+  if (!mip->inode.i_block[14])
+    return freed_blocks;
+  get_block(mip->mount_entry, mip->inode.i_block[14], buf1);
+  fs_p1 = (int *)buf1;
+  while (*fs_p1 && ((char *)fs_p1 < buf1 + BLKSIZE_1024)) {
+    get_block(mip->mount_entry, *fs_p1, buf2);
+    fs_p2 = (int *)buf2;
+    while (*fs_p2 && ((char *)fs_p2 < buf2 + BLKSIZE_1024)) {
+      get_block(mip->mount_entry, *fs_p2, buf3);
+      fs_p3 = (int *)buf3;
+      while (*fs_p3 && ((char *)fs_p3 < buf3 + BLKSIZE_1024))
+        freed_blocks += free_block(mip->mount_entry, *fs_p3);
+      fs_p2++;
+    }
+    fs_p1++;
+  }
+
+  put_minode(mip);
+  return freed_blocks;
 }

@@ -4,7 +4,7 @@ bool do_unlink(cmd *c) {
   path in_path;
   minode *mip, *parent;
   if (c->argc < 2) {
-    printf("stat requires: stat filename\n");
+    printf("unlink requires: unlink filename\n");
     return false;
   }
   if (!parse_path(c->argv[1], &in_path) || !(mip = search_path(&in_path))) {
@@ -21,13 +21,15 @@ bool do_unlink(cmd *c) {
   parent = search_path(&in_path);
   mip->inode.i_links_count--;
   if (!mip->inode.i_links_count) {
-    //         deallocate its data blocks by:
-    // rm_dir_entry(parent, bname);
+    free_i_block(mip);
+    free_inode(mip->mount_entry, mip->ino);
   }
+  rm_dir_entry(parent, bname);
   mip->dirty = true;
-  parent->dirty = true;
   put_minode(mip);
+  parent->dirty = true;
   put_minode(parent);
+  return true;
 }
 // todo
 

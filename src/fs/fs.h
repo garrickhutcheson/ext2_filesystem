@@ -39,16 +39,13 @@ typedef struct ext2_dir_entry_2 dir_entry;
 // EXT4_REPLICA_INO 10    Used by non-upstream feature
 
 // File types
-#define __S_IFDIR 0040000  /* Directory.  */
-#define __S_IFCHR 0020000  /* Character device.  */
-#define __S_IFBLK 0060000  /* Block device.  */
-#define __S_IFREG 0100000  /* Regular file.  */
-#define __S_IFIFO 0010000  /* FIFO.  */
-#define __S_IFLNK 0120000  /* Symbolic link.  */
-#define __S_IFSOCK 0140000 /* Socket.  */
-#define DIR_FILE __S_IFDIR
-#define REG_FILE __S_IFREG
-#define LNK_FILE __S_IFLNK
+// #define __S_IFDIR 0040000  /* Directory.  */
+// #define __S_IFCHR 0020000  /* Character device.  */
+// #define __S_IFBLK 0060000  /* Block device.  */
+// #define __S_IFREG 0100000  /* Regular file.  */
+// #define __S_IFIFO 0010000  /* FIFO.  */
+// #define __S_IFLNK 0120000  /* Symbolic link.  */
+// #define __S_IFSOCK 0140000 /* Socket.  */
 
 // Proc status
 #define PROC_FREE 0
@@ -182,8 +179,11 @@ bool set_bit(char *, int);
 bool clr_bit(char *, int);
 bool get_block(mount_entry *, int, char *);
 int alloc_inode(mount_entry *);
+int free_inode(mount_entry *me, int ino);
 int free_block(mount_entry *, int);
 int alloc_block(mount_entry *);
 int add_dir_entry(minode *, dir_entry *);
 int rm_dir_entry(minode *, char *);
+int free_i_block(minode *);
+
 #endif

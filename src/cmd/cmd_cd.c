@@ -10,6 +10,11 @@ bool do_cd(cmd *c) {
     if ((dest = search_path(in_path)) == NULL)
       return false;
   }
+  if (S_ISLNK(dest->inode.i_mode)) {
+    path sym_path;
+    parse_path((char *)dest->inode.i_block, &sym_path);
+    dest = search_path(&sym_path);
+  }
   if (!S_ISDIR(dest->inode.i_mode)) {
     printf("cannot cd to non-dir\n");
     return false;
