@@ -1,23 +1,8 @@
 #include "fs.h"
 
-// search_inode() function:
-// The search_inode() function implements the file system tree traversal
-// algorithm. It returns the INODE number (ino) of a specified pathname. To
-// begin with, we assume that in the level-1 file system implementation, the
-// file system resides on a single root device, so that there are no mounted
-// devices and mounting point crossings. Mounted file systems and mounting point
-// crossing will be considered later in level-3 of the file system
-// implementation Thus,
-// the search_inode() function essentially returns the (dev, ino) of a pathname.
-// The function first uses the tokenize() function to break up pathname into
-// component strings. We assume that the tokenized strings are in a
-// global data
-// area, each pointed by a name[i] pointer and the number of
-// token strings is nname. Then it calls the search() function
-// to search for the token strings in
-// successive directories. The following shows the tokenize() and search()
-// functions.
-
+// set if path relative/absolute/root in buf
+// split path_name on "/" into argv and argc of buf
+// return argc
 int parse_path(char *path_name, path *buf_path) {
   char *s, safe_path[256];
   buf_path->argc = 0;
@@ -46,8 +31,9 @@ int parse_path(char *path_name, path *buf_path) {
   return buf_path->argc;
 }
 
-// todo: refactor search_dir, list_dir, count_dir
-
+// iterates through i_block of mip
+// return ino of dir with dir_name on success
+// return 0 on failure
 int search_dir(minode *mip, char *dir_name) {
   int i;
   char *fs_p, temp[256], buf[BLKSIZE_1024] = {0}, *b = buf;
@@ -81,9 +67,9 @@ int search_dir(minode *mip, char *dir_name) {
   return 0;
 }
 
-// returns an array of dir_entry from a dir minode
-// only supports direct blocks
-// write dir entries
+// iterate through i_block of mip and store in dir_arr
+// return dirc on success, return 0 on failure
+// todo: indirect and double indirect
 int list_dir(minode *mip, dir_entry *dir_arr) {
   char *fs_p, buf[BLKSIZE_1024];
   dir_entry *dirp;
@@ -106,11 +92,11 @@ int list_dir(minode *mip, dir_entry *dir_arr) {
       fs_p += dirp->rec_len;
     }
   }
-  // todo: indirect and double indirect
   return dirc;
 }
 
-// returns number of dir entries in mip
+// returns count of dir entries in mip on success
+// returns 0 on failure
 int count_dir(minode *mip) {
   char buf[BLKSIZE_1024], *bufp = buf, temp[256];
   dir_entry *dirp;
@@ -136,9 +122,9 @@ int count_dir(minode *mip) {
   return dirc;
 }
 
-// must put_minode on returned minode when done
-// returns found minode on success
+// returns minode of path on success
 // returns NULL on failure
+// does not put found minode
 minode *search_path(path *target_path) {
   minode *mip;
   int i, ino;

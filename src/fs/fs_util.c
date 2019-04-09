@@ -2,14 +2,13 @@
 #include "string.h"
 #include <unistd.h>
 
+//// ALLOC AND FREE
+
 // returns the ino of the next available inode in inode_bitmap
-// returns 0 if outta room
-// modifies inode_bitmap
+// returns 0 if no more inodes, modifies inode_bitmap
 int alloc_inode(mount_entry *me) {
   char buf[BLKSIZE_1024];
-  // read inode_bitmap block
   get_block(me, me->group_desc.bg_inode_bitmap, buf);
-
   for (int i = 0; i < me->super_block.s_inodes_count; i++) {
     if (tst_bit(buf, i) == 0) {
       set_bit(buf, i);
@@ -21,41 +20,19 @@ int alloc_inode(mount_entry *me) {
   return 0;
 }
 
+// Marks the given ino in inode_bitmap as available
+// returns 1
 int free_inode(mount_entry *me, int ino) {
   char buf[BLKSIZE_1024];
   get_block(me, me->group_desc.bg_inode_bitmap, buf);
   clr_bit(buf, ino - 1);
   me->group_desc.bg_free_inodes_count++;
   put_block(me, me->group_desc.bg_inode_bitmap, buf);
-  return 0;
+  return 1;
 }
 
-// read block to buffer
-bool get_block(mount_entry *me, int blk, char *buf) {
-  lseek(me->fd, blk * BLKSIZE_1024, SEEK_SET);
-  int n = read(me->fd, buf, BLKSIZE_1024);
-  if (n < 0) {
-    printf("get_block[% d % d] error \n", me->fd, blk);
-    return false;
-  }
-  return true;
-}
-
-// write block from buffer
-bool put_block(mount_entry *me, int blk, char *buf) {
-  lseek(me->fd, blk * BLKSIZE_1024, SEEK_SET);
-  int n = write(me->fd, buf, BLKSIZE_1024);
-  if (n != BLKSIZE_1024) {
-    printf("put_block [%d %d] error\n", me->fd, blk);
-    return false;
-  }
-  return true;
-}
-
-// does what its name suggests
-// returns integer of next available block no
-// returns 0 if no more room
-// modifies block_bitmap
+// returns bno of next available block in block_bitmap
+// returns 0 if out of blocks, modifies block_bitmap
 int alloc_block(mount_entry *me) {
   char buf[BLKSIZE_1024];
 
@@ -67,15 +44,15 @@ int alloc_block(mount_entry *me) {
       set_bit(buf, i);
       me->group_desc.bg_free_blocks_count--;
       put_block(me, me->group_desc.bg_block_bitmap, buf);
-      return i + 1;
+      return i;
     }
   }
   return 0;
 }
 
+// Marks the given bno in block_bitmap as available
 int free_block(mount_entry *me, int bno) {
   char buf[BLKSIZE_1024];
-  // read block_bitmap block
   get_block(me, me->group_desc.bg_block_bitmap, buf);
   clr_bit(buf, bno);
   me->group_desc.bg_free_blocks_count++;
@@ -83,49 +60,77 @@ int free_block(mount_entry *me, int bno) {
   return 1;
 }
 
-// tests the nth bit of a buffer
+// GET PUT BLOCK
+
+// read block to buf from disk
+// return 1 on success, 0 on failure
+int get_block(mount_entry *me, int blk, char *buf) {
+  lseek(me->fd, blk * BLKSIZE_1024, SEEK_SET);
+  int n = read(me->fd, buf, BLKSIZE_1024);
+  if (n < 0) {
+    printf("get_block[% d % d] error \n", me->fd, blk);
+    return 0;
+  }
+  return 1;
+}
+
+// write block from buf to disk
+// return 1 on success, 0 on failure
+int put_block(mount_entry *me, int blk, char *buf) {
+  lseek(me->fd, blk * BLKSIZE_1024, SEEK_SET);
+  int n = write(me->fd, buf, BLKSIZE_1024);
+  if (n != BLKSIZE_1024) {
+    printf("put_block [%d %d] error\n", me->fd, blk);
+    return 0;
+  }
+  return 1;
+}
+
+// BIT OPERATIONS
+
+// tests the nth bit of buf
 // return value of bit
-// buf - buffer to test
-// bit - which bit to test
-bool tst_bit(char *buf, int bit) {
+int tst_bit(char *buf, int bit) {
   int i, j;
   i = bit / 8;
   j = bit % 8;
   if (buf[i] & (1 << j))
-    return true;
-  return false;
+    return 1;
+  return 0;
 }
 
-// sets the nth bit of a buffer to 1
-// return bool indicating success
-// buf - buffer to test
-// bit - which bit to test
-bool set_bit(char *buf, int bit) {
+// sets the nth bit of buf to 1
+// returns 1
+int set_bit(char *buf, int bit) {
   int i, j;
   i = bit / 8;
   j = bit % 8;
   buf[i] |= (1 << j);
-  return true;
+  return 1;
 }
 
-// sets the nth bit of a buffer to 0
-// return bool indicating success
-// buf - buffer to test
-// bit - which bit to test
-bool clr_bit(char *buf, int bit) {
+// sets the nth bit of buf to 0
+// returns 1
+int clr_bit(char *buf, int bit) {
   int i, j;
   i = bit / 8;
   j = bit % 8;
   buf[i] &= ~(1 << j);
-  return true;
+  return 1;
 }
 
-int ideal_len(dir_entry *dirp) { return 4 * ((8 + dirp->name_len + 3) / 4); }
+//// ADD REMOVE DIR
 
-// mip - minode * to have entry added to it
-// dirp - dir_entry * to be added to *mip
-// dirp must have name, name_len, and inode set
-// increments mip link count make sure to put!
+// returns the closest size as a multiple of 4 which can contain *dirp
+int ideal_len(dir_entry *dirp) {
+  int ideal = 4 * ((8 + dirp->name_len + 3) / 4);
+  return ideal;
+}
+
+// creates new_dirp in mip's i_block[]
+// new_dirp must have name, name_len, and inode set
+// return rec_len on success, 0 on failure
+// increments mip link count, but does not put inode
 int add_dir_entry(minode *mip, dir_entry *new_dirp) {
   char buf[BLKSIZE_1024], *bufp = buf, name[256];
   dir_entry *cur_dirp;
@@ -142,7 +147,7 @@ int add_dir_entry(minode *mip, dir_entry *new_dirp) {
     return 0;
   }
 
-  // set dirp rec_len to ideal
+  // set new_dirp rec_len to ideal
   new_dirp->rec_len = ideal_len(new_dirp);
 
   // iterate through direct blocks
@@ -158,6 +163,7 @@ int add_dir_entry(minode *mip, dir_entry *new_dirp) {
       mip->inode.i_links_count++;
       return cur_dirp->rec_len;
     }
+    // else
     get_block(mip->mount_entry, mip->inode.i_block[i], buf);
     bufp = buf;
     // iterate through dir_entries to find space
@@ -185,10 +191,9 @@ int add_dir_entry(minode *mip, dir_entry *new_dirp) {
   return 0;
 }
 
-// mip - minode * to have entry added to it
-// dirp - dir_entry * to be added to *mip
-// dirp must have name, name_len, and inode set
-// increments mip link count make sure to put!
+// removes dir with dir.name equal dir_name from mip
+// return rec_len of last dir on success, 0 on failure
+// decrements mip link_count, does not put
 int rm_dir_entry(minode *mip, char *dir_name) {
   int i;
   char buf[BLKSIZE_1024], *bufp, *prev;
@@ -237,7 +242,7 @@ int rm_dir_entry(minode *mip, char *dir_name) {
         mip->inode.i_links_count--;
         mip->inode.i_atime = mip->inode.i_ctime = mip->inode.i_mtime = time(0L);
         mip->dirty = true;
-        return dep->inode;
+        return dep->rec_len;
       }
       prev = bufp;
       bufp += dep->rec_len;
@@ -247,6 +252,10 @@ int rm_dir_entry(minode *mip, char *dir_name) {
   return 0;
 }
 
+//// MISC
+
+// frees all blocks (direct,indirect, etc..) from mip->inode.i_block[]
+// return num blocks freed
 int free_i_block(minode *mip) {
   char buf1[BLKSIZE_1024], buf2[BLKSIZE_1024], buf3[BLKSIZE_1024];
   int *fs_p1, *fs_p2, *fs_p3, freed_blocks = 0;

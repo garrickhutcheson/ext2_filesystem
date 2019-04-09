@@ -172,16 +172,15 @@ int list_dir(minode *, dir_entry *);
 int count_dir(minode *);
 
 // fs_util
-bool get_block(mount_entry *, int, char *);
-bool put_block(mount_entry *, int, char *);
-bool tst_bit(char *, int);
-bool set_bit(char *, int);
-bool clr_bit(char *, int);
-bool get_block(mount_entry *, int, char *);
 int alloc_inode(mount_entry *);
-int free_inode(mount_entry *me, int ino);
-int free_block(mount_entry *, int);
+int free_inode(mount_entry *, int);
 int alloc_block(mount_entry *);
+int free_block(mount_entry *, int);
+int get_block(mount_entry *, int, char *);
+int put_block(mount_entry *, int, char *);
+int tst_bit(char *, int);
+int set_bit(char *, int);
+int clr_bit(char *, int);
 int add_dir_entry(minode *, dir_entry *);
 int rm_dir_entry(minode *, char *);
 int free_i_block(minode *);
