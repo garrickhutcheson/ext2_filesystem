@@ -127,7 +127,7 @@ int count_dir(minode *mip) {
 // does not put found minode
 minode *search_path(path *target_path) {
   path safe_path = *target_path;
-  minode *mip;
+  minode *mip, *prev_mip;
   int i, ino;
   if (target_path->is_root)
     return global_root_inode;
@@ -139,32 +139,39 @@ minode *search_path(path *target_path) {
 
   // search for each token string
   for (i = 0; i < safe_path.argc; i++) {
+
+    ino = search_dir(mip, safe_path.argv[i]);
+
+    if (!ino) {
+      printf("no such component name %s\n", target_path->argv[i]);
+      put_minode(mip);
+      return NULL;
+    }
+    minode *prev_mip = mip;
+    mip = get_minode(mip->mount_entry, ino);
     if (S_ISLNK(mip->inode.i_mode)) { // handle symlink
+      if (i == safe_path.argc - 1)    // if last entry return symlink
+        return mip;
       path sym_path;
       parse_path((char *)mip->inode.i_block, &sym_path);
-      if (sym_path.is_absolute) // recurse and continue iteration on new mip
+      if (sym_path.is_absolute) { // recurse and continue iteration on new mip
+        put_minode(mip);
         mip = search_path(&sym_path);
-      else // append sym_path to target_path and continue iteration
+      } else // append sym_path to target_path and continue iteration
       {
         // TODO: WATCH THIS FUCK-RIDDLED BAD BOY RUN
-        memcpy(&safe_path.argv[i + sym_path.argc], &safe_path.argv[i],
+        memcpy(&safe_path.argv[i + sym_path.argc], &safe_path.argv[i + 1],
                sizeof(char *) * sym_path.argc);
-        memcpy(&safe_path.argv[i], &sym_path.argv,
+        memcpy(&safe_path.argv[i], sym_path.argv,
                sizeof(char *) * sym_path.argc);
-        safe_path.argc += sym_path.argc;
-      }
-    } else {
-      ino = search_dir(mip, safe_path.argv[i]);
-
-      if (!ino) {
-        printf("no such component name %s\n", target_path->argv[i]);
+        safe_path.argc += sym_path.argc - 1;
+        i--;
         put_minode(mip);
-        return NULL;
+        mip = prev_mip;
+        continue;
       }
-      put_minode(mip);
-      // switch to new minode
-      mip = get_minode(mip->mount_entry, ino);
     }
+    put_minode(prev_mip);
   }
   return mip;
 }
