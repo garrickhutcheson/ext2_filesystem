@@ -137,7 +137,7 @@ int add_dir_entry(minode *mip, dir_entry *new_dirp) {
   int free_space;
   snprintf(name, new_dirp->name_len + 1, "%s", new_dirp->name);
   if (search_dir(mip, name)) {
-    printf("dir_entry by name of %s already exists", name);
+    printf("dir_entry by name of %s already exists\n", name);
     return 0;
   }
 
@@ -269,8 +269,10 @@ int free_i_block(minode *mip) {
     return freed_blocks;
   get_block(mip->mount_entry, mip->inode.i_block[12], buf1);
   fs_p1 = (int *)buf1;
-  while (*fs_p1 && ((char *)fs_p1 < buf1 + BLKSIZE_1024))
+  while (*fs_p1 && ((char *)fs_p1 < buf1 + BLKSIZE_1024)) {
     freed_blocks += free_block(mip->mount_entry, *fs_p1);
+    fs_p1++;
+  }
 
   // double indirect blocks
   if (!mip->inode.i_block[13])
