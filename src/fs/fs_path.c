@@ -126,6 +126,7 @@ int count_dir(minode *mip) {
 // returns NULL on failure
 // does not put found minode
 minode *search_path(path *target_path) {
+  path safe_path = *target_path;
   minode *mip;
   int i, ino;
   if (target_path->is_root)
@@ -137,13 +138,23 @@ minode *search_path(path *target_path) {
   mip->ref_count++;
 
   // search for each token string
-  for (i = 0; i < target_path->argc; i++) {
-    if (S_ISLNK(mip->inode.i_mode)) {
+  for (i = 0; i < safe_path.argc; i++) {
+    if (S_ISLNK(mip->inode.i_mode)) { // handle symlink
       path sym_path;
       parse_path((char *)mip->inode.i_block, &sym_path);
-      mip = search_path(&sym_path);
+      if (sym_path.is_absolute) // recurse and continue iteration on new mip
+        mip = search_path(&sym_path);
+      else // append sym_path to target_path and continue iteration
+      {
+        // TODO: WATCH THIS FUCK-RIDDLED BAD BOY RUN
+        memcpy(&safe_path.argv[i + sym_path.argc], &safe_path.argv[i],
+               sizeof(char *) * sym_path.argc);
+        memcpy(&safe_path.argv[i], &sym_path.argv,
+               sizeof(char *) * sym_path.argc);
+        safe_path.argc += sym_path.argc;
+      }
     } else {
-      ino = search_dir(mip, target_path->argv[i]);
+      ino = search_dir(mip, safe_path.argv[i]);
 
       if (!ino) {
         printf("no such component name %s\n", target_path->argv[i]);
