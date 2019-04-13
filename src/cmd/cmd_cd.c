@@ -2,12 +2,12 @@
 
 bool do_cd(cmd *c) {
 
-  path p, *in_path = &p;
+  path in_path;
   minode *dest;
   if (c->argc < 2)
     dest = global_root_inode;
   else {
-    parse_path(c->argv[1], in_path);
+    parse_path(c->argv[1], &in_path);
     if ((dest = search_path(in_path)) == NULL) {
       printf("path not found");
       return false;
@@ -15,13 +15,13 @@ bool do_cd(cmd *c) {
   }
   // if we got back a symlink
   if (S_ISLNK(dest->inode.i_mode)) {
-    path s, *sym_path = &s;
-    parse_path((char *)dest->inode.i_block, sym_path);
-    if (!sym_path->is_absolute) {
+    path sym_path;
+    parse_path((char *)dest->inode.i_block, &sym_path);
+    if (!sym_path.is_absolute) {
       // replace link name with link contents and search again
-      memcpy(&(in_path->argv[--(in_path->argc)]), sym_path->argv,
-             sizeof(char *) * sym_path->argc);
-      in_path->argc += sym_path->argc;
+      memcpy(&(in_path.argv[--(in_path.argc)]), sym_path.argv,
+             sizeof(char *) * sym_path.argc);
+      in_path.argc += sym_path.argc;
       dest = search_path(in_path);
     } else // search absolute path
       dest = search_path(sym_path);

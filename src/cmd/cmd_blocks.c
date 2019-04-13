@@ -6,7 +6,7 @@ bool do_blocks(cmd *c) {
   minode *mip;
 
   parse_path(c->argv[1], &in_path);
-  if (!(mip = search_path(&in_path)))
+  if (!(mip = search_path(in_path)))
     return false;
 
   printf("\ndirect blocks:\n");

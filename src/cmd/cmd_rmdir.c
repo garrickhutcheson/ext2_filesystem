@@ -7,7 +7,7 @@ bool do_rmdir(cmd *c) {
     printf("rmdir requires path\n");
     return false;
   }
-  minode *mip = search_path(&in_path);
+  minode *mip = search_path(in_path);
   if (!S_ISDIR(mip->inode.i_mode)) {
     printf("Can't rm non-directory\n");
     put_minode(mip);
@@ -15,7 +15,7 @@ bool do_rmdir(cmd *c) {
   }
   char *bname = in_path.argv[in_path.argc - 1];
   in_path.argc--;
-  minode *parent = search_path(&in_path);
+  minode *parent = search_path(in_path);
 
   // todo: double check this
   if (running->uid != 0 && mip->inode.i_uid != running->uid) {

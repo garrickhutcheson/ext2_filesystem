@@ -13,8 +13,8 @@ bool do_symlink(cmd *c) {
   char *bname = dest_path.argv[dest_path.argc - 1];
 
   dest_path.argc--;
-  minode *dest_parent = search_path(&dest_path);
-  minode *src = search_path(&src_path);
+  minode *dest_parent = search_path(dest_path);
+  minode *src = search_path(src_path);
   if (!src || !dest_parent) {
     printf("bad path\n");
     return false;

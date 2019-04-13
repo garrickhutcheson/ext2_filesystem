@@ -4,25 +4,18 @@
 // split path_name on "/" into argv and argc of buf
 // return argc
 int parse_path(char *path_name, path *buf_path) {
-  char *s, safe_path[256];
+  char *s, safe_name[256];
+  strcpy(safe_name, path_name);
   buf_path->argc = 0;
 
-  // check if root
-  if (strcmp(path_name, "/") == 0) {
-    buf_path->is_root = true;
-    buf_path->argc = 1;
-  } else
-    buf_path->is_root = false;
-
   // check if absolute or relative
-  if (path_name[0] == '/')
+  if (safe_name[0] == '/')
     buf_path->is_absolute = true;
   else
     buf_path->is_absolute = false;
 
-  strcpy(safe_path, path_name);
   // split into components
-  s = strtok(safe_path, "/");
+  s = strtok(safe_name, "/");
   while (s) {
     strcpy(buf_path->argv[buf_path->argc++], s);
     s = strtok(NULL, "/");
@@ -125,46 +118,41 @@ int count_dir(minode *mip) {
 // returns minode of path on success
 // returns NULL on failure
 // does not put found minode
-minode *search_path(path *target_path) {
-  path safe_path = *target_path;
-  minode *mip, *prev_mip;
-  int i, ino;
-  if (target_path->is_root)
-    return global_root_inode;
-  if (target_path->is_absolute)
-    mip = global_root_inode; // if absolute
-  else
+minode *search_path(path target_path) {
+  minode *prev_mip, *mip = global_root_inode;
+  int ino;
+  if (!target_path.is_absolute)
     mip = running->cwd; // if relative
   mip->ref_count++;
 
   // search for each token string
-  for (i = 0; i < safe_path.argc; i++) {
+  for (int i = 0; i < target_path.argc; i++) {
 
-    ino = search_dir(mip, safe_path.argv[i]);
+    ino = search_dir(mip, target_path.argv[i]);
 
     if (!ino) {
-      printf("no such component name %s\n", target_path->argv[i]);
+      printf("no such component name %s\n", target_path.argv[i]);
       put_minode(mip);
       return NULL;
     }
     minode *prev_mip = mip;
     mip = get_minode(mip->mount_entry, ino);
     if (S_ISLNK(mip->inode.i_mode)) { // handle symlink
-      if (i == safe_path.argc - 1)    // if last entry return symlink
+      if (i == target_path.argc - 1)  // if last entry return symlink
         return mip;
       path sym_path;
       parse_path((char *)mip->inode.i_block, &sym_path);
       if (sym_path.is_absolute) { // recurse and continue iteration on new mip
         put_minode(mip);
-        mip = search_path(&sym_path);
+        mip = search_path(sym_path);
       } else // append sym_path to target_path and continue iteration
       {
         // TODO: WATCH THIS FUCK-RIDDLED BAD BOY RUN
-        memcpy(&safe_path.argv[i + sym_path.argc], &safe_path.argv[i + 1],
+        memcpy(&target_path.argv[i + sym_path.argc], &target_path.argv[i + 1],
                sizeof(char *) * sym_path.argc);
-        memcpy(&safe_path.argv[i], sym_path.argv,
+        memcpy(&target_path.argv[i], sym_path.argv,
                sizeof(char *) * sym_path.argc);
-        safe_path.argc += sym_path.argc - 1;
+        target_path.argc += sym_path.argc - 1;
         i--;
         put_minode(mip);
         mip = prev_mip;

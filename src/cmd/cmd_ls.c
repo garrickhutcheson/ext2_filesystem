@@ -41,7 +41,7 @@ bool do_ls(cmd *c) {
   } else {
     path in_path;
     parse_path(c->argv[1], &in_path);
-    cur_dir = search_path(&in_path);
+    cur_dir = search_path(in_path);
     if (!cur_dir) {
       printf("invalid path\n");
       return false;

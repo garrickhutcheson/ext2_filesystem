@@ -7,7 +7,7 @@ bool do_stat(cmd *c) {
     printf("stat requires: stat filename\n");
     return false;
   }
-  if (!parse_path(c->argv[1], &in_path) || !(mip = search_path(&in_path))) {
+  if (!parse_path(c->argv[1], &in_path) || !(mip = search_path(in_path))) {
     printf("bad path");
     return false;
   }

@@ -7,7 +7,7 @@ bool do_unlink(cmd *c) {
     printf("unlink requires: unlink filename\n");
     return false;
   }
-  if (!parse_path(c->argv[1], &in_path) || !(mip = search_path(&in_path))) {
+  if (!parse_path(c->argv[1], &in_path) || !(mip = search_path(in_path))) {
     printf("bad path");
     return false;
   }
@@ -18,7 +18,7 @@ bool do_unlink(cmd *c) {
   }
   char *bname = in_path.argv[in_path.argc - 1];
   in_path.argc--;
-  parent = search_path(&in_path);
+  parent = search_path(in_path);
   mip->inode.i_links_count--;
   if (!mip->inode.i_links_count) {
     free_i_block(mip);

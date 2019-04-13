@@ -10,7 +10,7 @@ bool do_chmod(cmd *c) {
     printf("bad path");
     return false;
   }
-  minode *mip = search_path(&in_path);
+  minode *mip = search_path(in_path);
   // long int strtol (const char* str, char** endptr, int base);
   // if given base == 0 then base is determined by +, -,O, OX/Ox prefix
   unsigned int mode = strtol(c->argv[1], NULL, 0);

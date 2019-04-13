@@ -60,12 +60,18 @@ typedef struct ext2_dir_entry_2 dir_entry;
 
 //// STRUCTS ////
 
+// for iterating through i_block
+typedef struct blk_iter {
+  void *b_ref;
+  int *b_buf_id;
+  char b_buf[BLKSIZE_1024];
+} blk_iter;
+
 // for parsing paths into
 typedef struct path {
-  char argv[4096][64]; // count of strings
-  int argc;            // array of strings
+  char argv[256][64]; // count of strings
+  int argc;           // array of strings
   bool is_absolute;
-  bool is_root;
 } path;
 
 // In-memory inodes structure
@@ -167,7 +173,7 @@ mount_entry *mount_device(char *, char *);
 // fs_path
 int parse_path(char *, path *);
 int search_dir(minode *, char *);
-minode *search_path(path *);
+minode *search_path(path);
 int list_dir(minode *, dir_entry *);
 int count_dir(minode *);
 

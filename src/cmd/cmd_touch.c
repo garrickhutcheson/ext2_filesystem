@@ -7,7 +7,7 @@ bool do_touch(cmd *c) {
     return false;
   }
   parse_path(c->argv[1], &in_path);
-  minode *mip = search_path(&in_path);
+  minode *mip = search_path(in_path);
   if (!mip)
     return do_creat(c);
   else
