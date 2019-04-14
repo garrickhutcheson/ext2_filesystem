@@ -60,11 +60,15 @@ typedef struct ext2_dir_entry_2 dir_entry;
 
 //// STRUCTS ////
 
-// for iterating through i_block
+// used to iterate over memory blocks of an inode
 typedef struct blk_iter {
-  void *b_ref;
-  int *b_buf_id;
-  char b_buf[BLKSIZE_1024];
+  struct minode *mip;
+  // buf contains the nth block
+  unsigned int nth;
+  // direct block (buf), indirection block(map1),
+  // double indirection(map2), triple indirection(map3);
+  char buf[BLKSIZE_1024], map1[BLKSIZE_1024], map2[BLKSIZE_1024],
+      map3[BLKSIZE_1024];
 } blk_iter;
 
 // for parsing paths into
