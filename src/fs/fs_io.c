@@ -20,12 +20,12 @@ bool free_oft(oft *op) {
   return true;
 }
 
-// returns a char* buffer of BLKSIZE on success
-// null on failure (nothing more to read)
-// must start from nth = -1
-char *get_blk(blk_iter *it, int lbk) {
+// returns block number of logical block
+// 0 on failure (nothing more to read)
+// start from nth = -1
+int get_lbk(blk_iter *it, int lbk) {
   // calculations for convience, could be macros
-  int blks_per = BLKSIZE_1024 / sizeof(int);
+  int blks_per = BLKSIZE_1024 / sizeof(int), bno;
   int direct_start = 0, direct_end = 12, indirect_start = direct_end,
       indirect_end = direct_end + blks_per, double_start = indirect_end,
       double_end = indirect_end + blks_per * blks_per,
@@ -40,13 +40,13 @@ char *get_blk(blk_iter *it, int lbk) {
   // get blocks based on lbk
   if (lbk < direct_end) {
     // get direct block
-    get_block(me, i_block[lbk], it->buf);
+    bno = i_block[lbk];
   } else if (lbk < indirect_end) {
     // get indirect block
     if (!(it->nth >= indirect_start && it->nth < indirect_end))
       // check if map1 cached
       get_block(me, i_block[12], it->map1);
-    get_block(me, it->map1[lbk - indirect_start], it->buf);
+    bno = it->map1[lbk - indirect_start];
   } else if (lbk < double_end) {
     // get double indirect block
     if (!(it->nth >= double_start && it->nth < double_end))
@@ -56,7 +56,7 @@ char *get_blk(blk_iter *it, int lbk) {
           (it->nth - double_start) / blks_per))
       // check if map1 cached
       get_block(me, it->map2[(lbk - double_start) / blks_per], it->map1);
-    get_block(me, it->map1[(lbk - double_start) % blks_per], it->buf);
+    bno = it->map1[(lbk - double_start) % blks_per];
   } else if (lbk < triple_end) {
     // triple  indirect blocks
     if (!(it->nth >= triple_start && it->nth < triple_end))
@@ -71,12 +71,13 @@ char *get_blk(blk_iter *it, int lbk) {
           (it->nth - triple_start) / blks_per))
       // check if map1 cached
       get_block(me, it->map2[(lbk - triple_start) / blks_per], it->map1);
-    get_block(me, it->map1[(lbk - triple_start) % blks_per], it->buf);
+    bno = it->map1[(lbk - triple_start) % blks_per];
   }
   it->nth = lbk;
-  return it->buf;
+  return bno;
 }
 
+// returns fd closed or -1 for fail
 int open_file(char *path, int mode) {
   int fd;
   struct path p;
@@ -117,25 +118,26 @@ int open_file(char *path, int mode) {
     put_minode(mip);
     free_oft(oftp);
     printf("Invalid file mode given\n");
-    return 0;
+    return -1;
   }
 
   for (int i = 0; i < NUM_OFT; i++) {
-    if (oft_arr[i].minode->ino == mip->ino &&
-        !(oft_arr[i].mode == 0 && oftp->mode == 0)) {
+    if (oft_arr[i].ref_count && oft_arr[i].minode->ino == mip->ino &&
+        &oft_arr[i] != oftp && (oft_arr[i].mode || oftp->mode)) {
       printf("Only allowed to write to unopened file\n");
       put_minode(mip);
       free_oft(oftp);
-      return 0;
+      return -1;
     }
   }
   mip->dirty = true;
   return fd;
 }
 
+// returns fd close or -1 for fail
 int close_file(int fd) {
   if (fd > NUM_OFT_PER)
-    return 0;
+    return -1;
   if (running->oft_arr[fd]) {
     put_minode(running->oft_arr[fd]->minode);
     free_oft(running->oft_arr[fd]);
@@ -143,5 +145,44 @@ int close_file(int fd) {
     return fd;
   }
   printf("fd not open\n");
-  return 0;
+  return -1;
+}
+
+int read_file(int fd, void *buf, unsigned int count) {
+  void *bufp = buf;
+  char bbuf[BLKSIZE_1024] = {0};
+  oft *oftp = running->oft_arr[fd];
+  if (!oftp || !(oftp->mode == 0 || oftp->mode == 2))
+    return 0;
+  blk_iter it = {.mip = oftp->minode, .nth = -1};
+  int lbk, avil, start, bno, to_copy, blk_off = 0, mid;
+  avil = oftp->minode->inode.i_size - oftp->offset;
+  while (count && avil) {
+    // find logical block
+    lbk = oftp->offset / BLKSIZE_1024;
+    // find offset from start of block
+    start = oftp->offset % BLKSIZE_1024;
+    // find offset from end of block
+    blk_off = BLKSIZE_1024 - start;
+    // get bno
+    if (!(bno = get_lbk(&it, lbk)))
+      return 0;
+    // get full ass block
+    get_block(oftp->minode->mount_entry, bno, bbuf);
+
+    // figure out how much of block to copy
+    to_copy = ((mid = (count > avil ? avil : count)) > blk_off) ? blk_off : mid;
+
+    // copy that much of block
+    memcpy(bufp, bbuf + start, to_copy);
+    // increment buf pointer  by amount copied
+    bufp += to_copy;
+    // increment offset by amount copied
+    oftp->offset += to_copy;
+    // decrement count by amount copied
+    count -= to_copy;
+    // decrement avil by amount copied
+    avil -= to_copy;
+  }
+  return bufp - buf;
 }

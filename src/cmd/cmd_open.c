@@ -20,7 +20,7 @@ bool do_open(cmd *c) {
   }
 
   int fd = open_file(c->argv[1], mode);
-  if (!fd)
+  if (fd == -1)
     printf("Usage: open <path/to/file> <mode: (0|1|2|3 or R|W|RW|APPEND)>\n");
   return (bool)fd;
 }

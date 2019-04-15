@@ -169,9 +169,10 @@ proc *running;
 // fs_io
 oft *alloc_oft();
 bool free_oft(oft *);
-char *get_blk(blk_iter *, int);
+int get_lbk(blk_iter *, int);
 int open_file(char *, int);
 int close_file(int);
+int read_file(int, void *, unsigned int);
 
 // fs_minode
 minode *alloc_minode();
