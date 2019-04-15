@@ -18,18 +18,32 @@ bool do_cmd(cmd *c) {
     do_blocks(c);
   } else if (!strcmp(c->argv[0], "cd")) {
     do_cd(c);
+  } else if (!strcmp(c->argv[0], "cat")) {
+    do_cat(c);
   } else if (!strcmp(c->argv[0], "chmod")) {
     do_chmod(c);
+  } else if (!strcmp(c->argv[0], "close")) {
+    do_close(c);
+  } else if (!strcmp(c->argv[0], "cp")) {
+    do_cp(c);
   } else if (!strcmp(c->argv[0], "creat")) {
     do_creat(c);
   } else if (!strcmp(c->argv[0], "link")) {
     do_link(c);
   } else if (!strcmp(c->argv[0], "ls")) {
     do_ls(c);
+  } else if (!strcmp(c->argv[0], "lseek")) {
+    do_lseek(c);
   } else if (!strcmp(c->argv[0], "mkdir")) {
     do_mkdir(c);
+  } else if (!strcmp(c->argv[0], "mv")) {
+    do_mv(c);
+  } else if (!strcmp(c->argv[0], "open")) {
+    do_open(c);
   } else if (!strcmp(c->argv[0], "pwd")) {
     do_pwd(c);
+  } else if (!strcmp(c->argv[0], "read")) {
+    do_read(c);
   } else if (!strcmp(c->argv[0], "rmdir")) {
     do_rmdir(c);
   } else if (!strcmp(c->argv[0], "stat")) {
@@ -40,9 +54,10 @@ bool do_cmd(cmd *c) {
     do_touch(c);
   } else if (!strcmp(c->argv[0], "unlink")) {
     do_unlink(c);
-  } else if (!strcmp(c->argv[0], "entries")) {
-    do_entries(c);
+  } else if (!strcmp(c->argv[0], "write")) {
+    do_write(c);
   } else if (!strcmp(c->argv[0], "quit")) {
+    // todo: should this write to disk first?
     exit(0);
   } else {
     printf("command not recognized: %s\n", c->argv[0]);

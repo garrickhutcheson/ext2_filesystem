@@ -15,7 +15,7 @@ int fs_init() {
     // P0 is a superuser process
     proc_arr[i].uid = i;
     // initialize PROC file descriptors to NULL
-    for (j = 0; j < NUM_FD; j++)
+    for (j = 0; j < NUM_OFT; j++)
       proc_arr[i].oft_arr[j] = 0;
     proc_arr[i].next = &proc_arr[i + 1];
   }

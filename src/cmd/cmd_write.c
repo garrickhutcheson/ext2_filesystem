@@ -1,6 +1,6 @@
 #include "cmd.h"
 
-bool do_write() {
+bool do_write(cmd *c) {
   //   int write_file()
   // {
   //   1. Preprations:
@@ -115,4 +115,5 @@ bool do_write() {
   // accordingly.
 
   // REQUIRED: Optimize the write() code in your project.
+  return true;
 }

@@ -1,6 +1,6 @@
 #include "cmd.h"
 
-bool do_read() {
+bool do_read(cmd *c) {
 
   //   int read_file()
   // {
@@ -136,4 +136,5 @@ bool do_read() {
   // accordingly. This would make the read loops more efficient.
 
   // REQUIRED: optimize the read algorithm in your project.
+  return true;
 }

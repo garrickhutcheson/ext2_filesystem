@@ -8,6 +8,11 @@
     "editor.formatOnSave": true,
     "files.associations": {
         "fs.h": "c",
-        "cmd.h": "c"
+        "cmd.h": "c",
+        "fcntl.h": "c",
+        "stdbool.h": "c",
+        "types.h": "c",
+        "features.h": "c",
+        "fcntl-linux.h": "c"
     },
 }

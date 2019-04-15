@@ -55,7 +55,7 @@ typedef struct ext2_dir_entry_2 dir_entry;
 #define NUM_MINODES 100
 #define NUM_MOUNT_ENTRIES 10
 #define NUM_PROCS 2
-#define NUM_FD 10
+#define NUM_OFT_PER 10
 #define NUM_OFT 40
 
 //// STRUCTS ////
@@ -104,6 +104,8 @@ typedef struct oft {
   minode *minode;
   // byte offset for R|W
   int offset;
+  // for caching
+  blk_iter it;
 } oft;
 
 // PROC structure
@@ -115,7 +117,7 @@ typedef struct proc {
   int ppid;
   int status;
   minode *cwd;
-  oft *oft_arr[NUM_FD];
+  oft *oft_arr[NUM_OFT_PER];
 } proc;
 
 // Mount Entry structure
@@ -164,6 +166,13 @@ proc *running;
 
 //// FUNC ////
 
+// fs_io
+oft *alloc_oft();
+bool free_oft(oft *);
+char *get_blk(blk_iter *, int);
+int open_file(char *, int);
+int close_file(int);
+
 // fs_minode
 minode *alloc_minode();
 bool free_minode(minode *);
@@ -194,5 +203,4 @@ int clr_bit(char *, int);
 int add_dir_entry(minode *, dir_entry *);
 int rm_dir_entry(minode *, char *);
 int free_i_block(minode *);
-
 #endif
