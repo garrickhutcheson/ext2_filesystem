@@ -171,6 +171,7 @@ oft *alloc_oft();
 bool free_oft(oft *);
 int get_lbk(blk_iter *, int);
 int open_file(char *, int);
+int lseek_file(int, int, int);
 int close_file(int);
 int read_file(int, void *, unsigned int);
 

@@ -134,6 +134,32 @@ int open_file(char *path, int mode) {
   return fd;
 }
 
+int lseek_file(int fd, int offset, int whence) {
+  oft *oftp;
+  int og_off;
+  if (fd < 0 || fd > NUM_OFT_PER)
+    return -1;
+  if ((oftp = running->oft_arr[fd])) {
+    og_off = oftp->offset;
+    // 0 	SEEK_SET
+    if (whence == 0)
+      oftp->offset = offset;
+    // 1 	SEEK_CUR
+    else if (whence == 1)
+      oftp->offset += offset;
+    // 2 	SEEK_END
+    else if (whence == 2)
+      oftp->offset = oftp->minode->inode.i_size + offset;
+    else
+      return -1;
+  }
+  if (oftp->offset > oftp->minode->inode.i_size || oftp->offset < 0) {
+    oftp->offset = og_off;
+    return -1;
+  }
+  return oftp->offset;
+}
+
 // returns fd close or -1 for fail
 int close_file(int fd) {
   if (fd > NUM_OFT_PER)
