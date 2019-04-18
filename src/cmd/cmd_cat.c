@@ -3,9 +3,12 @@
 bool do_cat(cmd *c) {
 
   char mybuf[1024], dummy = 0; // a null char at end of mybuf[ ]
-  int n;
+  int n, fd;
 
-  int fd = open_file(c->argv[1], 0);
+  if (fd = open_file(c->argv[1], 0) == -1) {
+    printf("can't open file for read\n");
+    return false;
+  }
   while ((n = read_file(fd, mybuf, 1024))) {
     mybuf[n] = 0;        // as a null terminated string
     printf("%s", mybuf); // <=== THIS works but not good

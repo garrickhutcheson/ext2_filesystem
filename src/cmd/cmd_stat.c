@@ -19,9 +19,9 @@ bool do_stat(cmd *c) {
          "Access: %s"
          "Modify: %s"
          "Change: %s",
-         c->argv[1], i->i_size, i->i_blocks, i->i_mode,
-         mip->mount_entry->dev_path, mip->ino, i->i_links_count, i->i_uid,
-         i->i_gid, ctime((long *)&i->i_atime), ctime((long *)&i->i_mtime),
+         c->argv[1], i->i_size, i->i_blocks, i->i_mode, mip->me->dev_path,
+         mip->ino, i->i_links_count, i->i_uid, i->i_gid,
+         ctime((long *)&i->i_atime), ctime((long *)&i->i_mtime),
          ctime((long *)&i->i_ctime));
 
   return true;

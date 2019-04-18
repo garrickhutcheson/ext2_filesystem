@@ -64,11 +64,13 @@ typedef struct ext2_dir_entry_2 dir_entry;
 typedef struct blk_iter {
   struct minode *mip;
   // buf contains the nth block
-  unsigned int nth;
+  unsigned int lbkno;
   // direct block (buf), indirection block(map1),
   // double indirection(map2), triple indirection(map3);
-  char buf[BLKSIZE_1024], map1[BLKSIZE_1024], map2[BLKSIZE_1024],
-      map3[BLKSIZE_1024];
+  int map1[BLKSIZE_1024 / sizeof(int)], map2[BLKSIZE_1024 / sizeof(int)],
+      map3[BLKSIZE_1024 / sizeof(int)];
+  // block numbers of maps for writing
+  int map1_bno, map2_bno, map3_bno;
 } blk_iter;
 
 // for parsing paths into
@@ -89,7 +91,7 @@ typedef struct minode {
   // modified flag
   bool dirty;
   // mount entry pointer
-  struct mount_entry *mount_entry;
+  struct mount_entry *me;
   // ignored for simple FS
   // int lock;
 } minode;
@@ -169,11 +171,12 @@ proc *running;
 // fs_io
 oft *alloc_oft();
 bool free_oft(oft *);
-int get_lbk(blk_iter *, int);
+int *get_lbk(blk_iter *, int);
 int open_file(char *, int);
 int lseek_file(int, int, int);
 int close_file(int);
 int read_file(int, void *, unsigned int);
+int write_file(int, void *, unsigned int);
 
 // fs_minode
 minode *alloc_minode();

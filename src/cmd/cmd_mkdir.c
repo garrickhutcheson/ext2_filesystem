@@ -20,9 +20,9 @@ bool do_mkdir(cmd *c) {
     printf("Can't add file to non-directory\n");
     return false;
   }
-  int ino = alloc_inode(parent->mount_entry);
+  int ino = alloc_inode(parent->me);
 
-  minode *child = get_minode(parent->mount_entry, ino);
+  minode *child = get_minode(parent->me, ino);
   child->inode.i_mode = 0x41ED;       // OR 040755: DIR type and permissions
   child->inode.i_uid = running->uid;  // Owner uid
   child->inode.i_gid = running->gid;  // Group Id

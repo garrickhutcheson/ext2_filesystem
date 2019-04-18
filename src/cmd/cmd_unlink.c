@@ -22,7 +22,7 @@ bool do_unlink(cmd *c) {
   mip->inode.i_links_count--;
   if (!mip->inode.i_links_count) {
     free_i_block(mip);
-    free_inode(mip->mount_entry, mip->ino);
+    free_inode(mip->me, mip->ino);
   }
   rm_dir_entry(parent, bname);
   mip->dirty = true;

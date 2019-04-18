@@ -154,17 +154,17 @@ int add_dir_entry(minode *mip, dir_entry *new_dirp) {
   for (int i = 0; i < 12; i++) {
     // if allocating a new block insert record as first entry
     if (mip->inode.i_block[i] == 0) {
-      mip->inode.i_block[i] = alloc_block(mip->mount_entry);
-      get_block(mip->mount_entry, mip->inode.i_block[i], buf);
+      mip->inode.i_block[i] = alloc_block(mip->me);
+      get_block(mip->me, mip->inode.i_block[i], buf);
       cur_dirp = (dir_entry *)buf;
       *cur_dirp = *new_dirp;
       cur_dirp->rec_len = BLKSIZE_1024;
-      put_block(mip->mount_entry, mip->inode.i_block[i], buf);
+      put_block(mip->me, mip->inode.i_block[i], buf);
       mip->inode.i_links_count++;
       return cur_dirp->rec_len;
     }
     // else
-    get_block(mip->mount_entry, mip->inode.i_block[i], buf);
+    get_block(mip->me, mip->inode.i_block[i], buf);
     bufp = buf;
     // iterate through dir_entries to find space
     while (bufp < buf + BLKSIZE_1024) {
@@ -180,7 +180,7 @@ int add_dir_entry(minode *mip, dir_entry *new_dirp) {
         // using a memcpy here avoids over-writing the end of the buffer
         memcpy(bufp, new_dirp, new_dirp->rec_len);
         // write buffer back to block
-        put_block(mip->mount_entry, mip->inode.i_block[i], buf);
+        put_block(mip->me, mip->inode.i_block[i], buf);
         mip->inode.i_links_count++;
         return new_dirp->rec_len;
       }
@@ -210,7 +210,7 @@ int rm_dir_entry(minode *mip, char *dir_name) {
       DEBUG_PRINT("dir_entry not found");
       return 0;
     }
-    get_block(mip->mount_entry, mip->inode.i_block[i], buf);
+    get_block(mip->me, mip->inode.i_block[i], buf);
     dep = (dir_entry *)buf;
     bufp = buf;
     while (bufp < buf + BLKSIZE_1024) {
@@ -218,7 +218,7 @@ int rm_dir_entry(minode *mip, char *dir_name) {
       if (strcmp(dir_name, str) == 0) {
         // if it's the only entry
         if (bufp == buf) {
-          free_block(mip->mount_entry, mip->inode.i_block[i]);
+          free_block(mip->me, mip->inode.i_block[i]);
           mip->inode.i_block[i] = 0;
           // if last entry
         } else if (bufp + dep->rec_len >= buf + BLKSIZE_1024) {
@@ -238,7 +238,7 @@ int rm_dir_entry(minode *mip, char *dir_name) {
           // give him some extra room
           dep->rec_len += freed_space;
         }
-        put_block(mip->mount_entry, mip->inode.i_block[i], buf);
+        put_block(mip->me, mip->inode.i_block[i], buf);
         mip->inode.i_links_count--;
         mip->inode.i_atime = mip->inode.i_ctime = mip->inode.i_mtime = time(0L);
         mip->dirty = true;
@@ -262,44 +262,44 @@ int free_i_block(minode *mip) {
   path in_path;
   // direct blocks
   for (int i = 0; i < 12 && mip->inode.i_block[i]; i++)
-    freed_blocks += free_block(mip->mount_entry, mip->inode.i_block[i]);
+    freed_blocks += free_block(mip->me, mip->inode.i_block[i]);
 
   // indirect blocks
   if (!mip->inode.i_block[12])
     return freed_blocks;
-  get_block(mip->mount_entry, mip->inode.i_block[12], buf1);
+  get_block(mip->me, mip->inode.i_block[12], buf1);
   fs_p1 = (int *)buf1;
   while (*fs_p1 && ((char *)fs_p1 < buf1 + BLKSIZE_1024)) {
-    freed_blocks += free_block(mip->mount_entry, *fs_p1);
+    freed_blocks += free_block(mip->me, *fs_p1);
     fs_p1++;
   }
 
   // double indirect blocks
   if (!mip->inode.i_block[13])
     return freed_blocks;
-  get_block(mip->mount_entry, mip->inode.i_block[13], buf1);
+  get_block(mip->me, mip->inode.i_block[13], buf1);
   fs_p1 = (int *)buf1;
   while (*fs_p1 && ((char *)fs_p1 < buf1 + BLKSIZE_1024)) {
-    get_block(mip->mount_entry, *fs_p1, buf2);
+    get_block(mip->me, *fs_p1, buf2);
     fs_p2 = (int *)buf2;
     while (*fs_p2 && ((char *)fs_p2 < buf2 + BLKSIZE_1024))
-      freed_blocks += free_block(mip->mount_entry, *fs_p2);
+      freed_blocks += free_block(mip->me, *fs_p2);
     fs_p1++;
   }
 
   // triple indirect blocks
   if (!mip->inode.i_block[14])
     return freed_blocks;
-  get_block(mip->mount_entry, mip->inode.i_block[14], buf1);
+  get_block(mip->me, mip->inode.i_block[14], buf1);
   fs_p1 = (int *)buf1;
   while (*fs_p1 && ((char *)fs_p1 < buf1 + BLKSIZE_1024)) {
-    get_block(mip->mount_entry, *fs_p1, buf2);
+    get_block(mip->me, *fs_p1, buf2);
     fs_p2 = (int *)buf2;
     while (*fs_p2 && ((char *)fs_p2 < buf2 + BLKSIZE_1024)) {
-      get_block(mip->mount_entry, *fs_p2, buf3);
+      get_block(mip->me, *fs_p2, buf3);
       fs_p3 = (int *)buf3;
       while (*fs_p3 && ((char *)fs_p3 < buf3 + BLKSIZE_1024))
-        freed_blocks += free_block(mip->mount_entry, *fs_p3);
+        freed_blocks += free_block(mip->me, *fs_p3);
       fs_p2++;
     }
     fs_p1++;

@@ -28,7 +28,7 @@ minode *get_minode(mount_entry *me, int ino) {
   // search in-memory minodes first
   for (i = 0; i < NUM_MINODES; i++) {
     minode *mip = &minode_arr[i];
-    if (mip->ref_count && (mip->mount_entry == me) && (mip->ino == ino)) {
+    if (mip->ref_count && (mip->me == me) && (mip->ino == ino)) {
       mip->ref_count++;
       return mip;
     }
@@ -45,7 +45,7 @@ minode *get_minode(mount_entry *me, int ino) {
       .ino = ino,
       .ref_count = 1,
       .dirty = 0,
-      .mount_entry = me,
+      .me = me,
   };
   return mip;
 }
@@ -70,10 +70,10 @@ bool put_minode(minode *mip) {
   block = (mip->ino - 1) / 8 + mount_entry_arr[0].group_desc.bg_inode_table;
   offset = (mip->ino - 1) % 8;
   // get block containing this inode
-  get_block(mip->mount_entry, block, buf);
+  get_block(mip->me, block, buf);
   ip = (inode *)buf + offset;
   *ip = mip->inode;
-  put_block(mip->mount_entry, block, buf);
+  put_block(mip->me, block, buf);
   free_minode(mip);
   return true;
 }

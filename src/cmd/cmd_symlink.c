@@ -25,8 +25,8 @@ bool do_symlink(cmd *c) {
         "cannot link a link because then you link to the link to the link\n");
     return false;
   }
-  int ino = alloc_inode(dest_parent->mount_entry);
-  minode *child = get_minode(dest_parent->mount_entry, ino);
+  int ino = alloc_inode(dest_parent->me);
+  minode *child = get_minode(dest_parent->me, ino);
 
   child->inode.i_mode = 0120000;     // LNK type and permissions
   child->inode.i_uid = running->uid; // Owner uid

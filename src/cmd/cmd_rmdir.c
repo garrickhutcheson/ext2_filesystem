@@ -39,7 +39,7 @@ bool do_rmdir(cmd *c) {
   for (int i = 0; i < 12; i++) {
     if (mip->inode.i_block[i] == 0)
       continue;
-    free_block(mip->mount_entry, mip->inode.i_block[i]);
+    free_block(mip->me, mip->inode.i_block[i]);
   }
   free_minode(mip);
   put_minode(mip);

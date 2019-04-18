@@ -88,15 +88,15 @@ void print_path(minode *mip) {
     char name[256] = {0};
     dir_entry *this_dir, *parent_dir, *dirp;
 
-    get_block(mip->mount_entry, mip->inode.i_block[0], buf1);
+    get_block(mip->me, mip->inode.i_block[0], buf1);
     this_dir = (dir_entry *)buf1;
     parent_dir = (dir_entry *)(buf1 + this_dir->rec_len);
-    mip = get_minode(mip->mount_entry, parent_dir->inode);
+    mip = get_minode(mip->me, parent_dir->inode);
 
     for (int i = 0; i < 12 && !(*name); i++) { // search direct blocks only
       if (mip->inode.i_block[i] == 0)
         break;
-      get_block(mip->mount_entry, mip->inode.i_block[i], buf2);
+      get_block(mip->me, mip->inode.i_block[i], buf2);
       dirp = (dir_entry *)buf2;
       buf2p = buf2;
       // todo: double check this condition
