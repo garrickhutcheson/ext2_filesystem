@@ -2,7 +2,7 @@
 
 bool do_cat(cmd *c) {
 
-  char mybuf[1025], dummy = 0; // a null char at end of mybuf[ ]
+  char mybuf[1024], dummy = 0; // a null char at end of mybuf[ ]
   int n;
 
   int fd = open_file(c->argv[1], 0);

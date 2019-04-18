@@ -31,19 +31,3 @@ bool do_unlink(cmd *c) {
   put_minode(parent);
   return true;
 }
-// todo
-
-// (4). if i_links_count == 0 ==> rm pathname by
-
-//         deallocate its data blocks by:
-
-//      Write a truncate(INODE) function, which deallocates ALL the data blocks
-//      of INODE. This is similar to printing the data blocks of INODE.
-
-//         deallocate its INODE;
-
-// (5). Remove childName = basename(pathname) from the parent directory by
-
-//         rm_child(parentInodePtr, childName)
-
-//      which is the SAME as that in rmdir or unlink file operations.
