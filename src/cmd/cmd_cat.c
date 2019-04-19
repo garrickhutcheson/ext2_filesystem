@@ -2,6 +2,11 @@
 
 bool do_cat(cmd *c) {
 
+  if (c->argc != 2) {
+    printf("Usage: cat <filename>\n");
+    return false;
+  }
+
   char mybuf[1024], dummy = 0; // a null char at end of mybuf[ ]
   int n, fd;
 

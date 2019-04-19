@@ -1,6 +1,37 @@
 #include "cmd.h"
 
-int ls_file(minode *file, char *fname) {
+bool do_ls(cmd *c) {
+  dir_entry dep[4096];
+  minode *cur_dir = NULL;
+  int entryc;
+
+  if (c->argc < 2) {
+    cur_dir = running->cwd;
+    cur_dir->ref_count++;
+  } else {
+    path in_path;
+    parse_path(c->argv[1], &in_path);
+    cur_dir = search_path(in_path);
+    if (!cur_dir) {
+      printf("invalid path\n");
+      return false;
+    }
+  }
+  entryc = list_dir(cur_dir, dep);
+  for (int i = 0; i < entryc; i++) {
+    minode *file = get_minode(cur_dir->me, dep[i].inode);
+    // printf("%s\n", dep[i].name);
+    char filename[256] = {0};
+    strncpy(filename, dep[i].name, dep[i].name_len);
+    _ls_file(file, filename);
+
+    put_minode(file);
+  }
+  put_minode(cur_dir);
+  return true;
+}
+
+int _ls_file(minode *file, char *fname) {
   char *t1 = "xwrxwrxwr-------";
   char *t2 = "----------------";
   char ftime[256], buf[256] = {0};
@@ -28,35 +59,4 @@ int ls_file(minode *file, char *fname) {
   }
   printf("\n");
   return 0;
-}
-
-bool do_ls(cmd *c) {
-  dir_entry dep[4096];
-  minode *cur_dir = NULL;
-  int entryc;
-
-  if (c->argc < 2) {
-    cur_dir = running->cwd;
-    cur_dir->ref_count++;
-  } else {
-    path in_path;
-    parse_path(c->argv[1], &in_path);
-    cur_dir = search_path(in_path);
-    if (!cur_dir) {
-      printf("invalid path\n");
-      return false;
-    }
-  }
-  entryc = list_dir(cur_dir, dep);
-  for (int i = 0; i < entryc; i++) {
-    minode *file = get_minode(cur_dir->me, dep[i].inode);
-    // printf("%s\n", dep[i].name);
-    char filename[256] = {0};
-    strncpy(filename, dep[i].name, dep[i].name_len);
-    ls_file(file, filename);
-
-    put_minode(file);
-  }
-  put_minode(cur_dir);
-  return true;
 }

@@ -1,21 +1,34 @@
 #include "cmd.h"
 
 bool do_cp(cmd *c) {
-  //                         HOW TO cp ONE file:
+  if (c->argc != 3) {
+    printf("Usage: cp <src filename> <dest filename>\n");
+    return false;
+  }
+  return _cp(c->argv[1], c->argv[2]);
+}
 
-  // cp src dest:
-
-  // 1. fd = open src for READ;
-
-  // 2. gd = open dst for WR|CREAT;
-
-  //    NOTE:In the project, you may have to creat the dst file first, then open
-  //    it
-  //         for WR, OR  if open fails due to no file yet, creat it and then
-  //         open it for WR.
-
-  // 3. while( n=read(fd, buf[ ], BLKSIZE) ){
-  //        write(gd, buf, n);  // notice the n in write()
-  //    }
-  return true;
+int _cp(char *src, char *dest) {
+  minode *src_mip, *dest_mip;
+  int src_fd, dest_fd, n, copied = 0;
+  char buf[BLKSIZE_1024];
+  // open src for READ;
+  if ((src_fd = open_file(src, 0)) < 0) {
+    printf("failed to open src for read\n");
+    return 0;
+  }
+  // creat dst if not exist
+  if (_creat(dest))
+    DEBUG_PRINT("creat %s", dest);
+  // open dst for WR;
+  if ((dest_fd = open_file(dest, 2)) < 0) {
+    printf("failed to open dest for read\n");
+    return 0;
+  }
+  // copy data
+  while (n = read_file(src_fd, buf, BLKSIZE_1024)) {
+    write_file(dest_fd, buf, n);
+    copied += n;
+  }
+  return copied;
 }

@@ -1,8 +1,8 @@
 #include "cmd.h"
 
 bool do_close(cmd *c) {
-  if (c->argc < 2) {
-    printf("Usage: close <path/to/file>\n");
+  if (c->argc != 2) {
+    printf("Usage: close <filename>\n");
     return false;
   }
 

@@ -1,21 +1,26 @@
 #include "cmd.h"
 
 bool do_mv(cmd *c) {
+  if (c->argc != 3) {
+    printf("Usage: mv <src> <dest>\n");
+    return false;
+  }
+  path src_path, dest_path;
+  parse_path(c->argv[1], &src_path);
+  parse_path(c->argv[2], &dest_path);
 
-  //                       HOW TO mv (rename)
-  // mv src dest:
+  char *bname = dest_path.argv[dest_path.argc - 1];
 
-  // 1. verify src exists; get its INODE in ==> you already know its dev
-  // 2. check whether src is on the same dev as src
-
-  //               CASE 1: same dev:
-  // 3. Hard link dst with src (i.e. same INODE number)
-  // 4. unlink src (i.e. rm src name from its parent directory and reduce
-  // INODE's
-  //                link count by 1).
-
-  //               CASE 2: not the same dev:
-  // 3. cp src to dst
-  // 4. unlink src
-  return true;
+  dest_path.argc--;
+  minode *dest_parent = search_path(dest_path);
+  minode *mip = search_path(src_path);
+  if (!mip || !dest_parent) {
+    printf("bad path\n");
+    return 0;
+  }
+  if (dest_parent->mount_entry != mip->mount_entry)
+    return _cp(c->argv[1], c->argv[2]);
+  else {
+    return (_link(c->argv[1], c->argv[2]) && _unlink(c->argv[1]));
+  }
 }

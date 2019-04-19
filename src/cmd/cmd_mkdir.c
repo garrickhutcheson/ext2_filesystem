@@ -1,24 +1,30 @@
 #include "cmd.h"
 
 bool do_mkdir(cmd *c) {
-  minode *exists;
-  path in_path;
-  if (c->argc < 2) {
-    printf("mkdir requires path\n");
+
+  if (c->argc != 2) {
+    printf("Usage: mkdir <dest>\n");
     return false;
   }
-  parse_path(c->argv[1], &in_path);
+
+  return _mkdir(c->argv[1]);
+}
+
+int _mkdir(char *dest) {
+  minode *exists;
+  path in_path;
+  parse_path(dest, &in_path);
   char *bname = in_path.argv[in_path.argc - 1];
   if ((exists = search_path(in_path))) {
-    printf("%s already exists\n", c->argv[1]);
+    printf("%s already exists\n", dest);
     put_minode(exists);
-    return false;
+    return 0;
   }
   in_path.argc--;
   minode *parent = search_path(in_path);
   if (!S_ISDIR(parent->inode.i_mode)) {
     printf("Can't add file to non-directory\n");
-    return false;
+    return 0;
   }
   int ino = alloc_inode(parent->me);
 
@@ -57,5 +63,5 @@ bool do_mkdir(cmd *c) {
   // write back to disk / put
   put_minode(parent);
   put_minode(child);
-  return true;
+  return ino;
 }

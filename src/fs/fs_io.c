@@ -84,7 +84,7 @@ int *get_lbk(blk_iter *it, int target) {
   return bno;
 }
 
-// returns fd closed or -1 for fail
+// returns fd or -1 for fail
 int open_file(char *path, int mode) {
   int fd;
   struct path p;
@@ -141,6 +141,7 @@ int open_file(char *path, int mode) {
   return fd;
 }
 
+// return final offset or -1 for failure
 int lseek_file(int fd, int offset, int whence) {
   oft *oftp;
   int og_off;

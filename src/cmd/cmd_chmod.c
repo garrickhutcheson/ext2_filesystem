@@ -2,8 +2,8 @@
 
 bool do_chmod(cmd *c) {
   path in_path;
-  if (c->argc < 3) {
-    printf("chmod requires: chmod mode filename\n");
+  if (c->argc != 3) {
+    printf("usage: chmod <mode> <filename>\n");
     return false;
   }
   if (!parse_path(c->argv[2], &in_path)) {

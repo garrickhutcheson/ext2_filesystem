@@ -1,5 +1,11 @@
 #include "cmd.h"
 bool do_blocks(cmd *c) {
+
+  if (c->argc != 2) {
+    printf("Usage: blocks <filename>\n");
+    return false;
+  }
+
   char buf1[BLKSIZE_1024], buf2[BLKSIZE_1024], buf3[BLKSIZE_1024];
   int *fs_p1, *fs_p2, *fs_p3;
   path in_path;

@@ -10,7 +10,7 @@ typedef struct cmd {
   char *argv[64]; // array of strings
 } cmd;
 
-// specific commands
+// command handlers
 bool do_blocks(cmd *);
 bool do_cat(cmd *);
 bool do_cd(cmd *);
@@ -33,7 +33,18 @@ bool do_touch(cmd *);
 bool do_unlink(cmd *);
 bool do_write(cmd *);
 
+// command implementations
+int _cd(char *);
+int _cp(char *, char *);
+int _creat(char *);
+int _link(char *, char *);
+int _ls_file(minode *, char *);
+int _mkdir(char *);
+int _pwd(minode *);
+int _rmdir(char *);
+int _symlink(char *, char *);
+int _unlink(char *);
+
 // utility
 bool do_cmd(cmd *c);
 int parse_cmd(char *, cmd *);
-void print_path(minode *mip);

@@ -1,13 +1,17 @@
 #include "cmd.h"
 
 bool do_unlink(cmd *c) {
-  path in_path;
-  minode *mip, *parent;
   if (c->argc < 2) {
-    printf("unlink requires: unlink filename\n");
+    printf("Usage: unlink <filename>\n");
     return false;
   }
-  if (!parse_path(c->argv[1], &in_path) || !(mip = search_path(in_path))) {
+  return true;
+}
+
+int _unlink(char *dest) {
+  path in_path;
+  minode *mip, *parent;
+  if (!parse_path(dest, &in_path) || !(mip = search_path(in_path))) {
     printf("bad path");
     return false;
   }
@@ -29,5 +33,4 @@ bool do_unlink(cmd *c) {
   put_minode(mip);
   parent->dirty = true;
   put_minode(parent);
-  return true;
 }
