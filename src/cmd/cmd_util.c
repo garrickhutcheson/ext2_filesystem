@@ -57,7 +57,7 @@ bool do_cmd(cmd *c) {
   } else if (!strcmp(c->argv[0], "write")) {
     do_write(c);
   } else if (!strcmp(c->argv[0], "quit")) {
-    // todo: should this write to disk first?
+    // TODO: should this write to disk first?
     exit(0);
   } else {
     printf("command not recognized: %s\n", c->argv[0]);

@@ -62,7 +62,7 @@ int search_dir(minode *mip, char *dir_name) {
 
 // iterate through i_block of mip and store in dir_arr
 // return dirc on success, return 0 on failure
-// todo: indirect and double indirect
+// TODO: indirect and double indirect
 int list_dir(minode *mip, dir_entry *dir_arr) {
   char *fs_p, buf[BLKSIZE_1024];
   dir_entry *dirp;
@@ -77,7 +77,7 @@ int list_dir(minode *mip, dir_entry *dir_arr) {
     get_block(mip->me, mip->inode.i_block[i], buf);
     dirp = (dir_entry *)buf;
     fs_p = buf;
-    // todo: double check this condition
+    // TODO: double check this condition
     while (fs_p < buf + BLKSIZE_1024) {
       dirp = (dir_entry *)fs_p;
       dir_arr[dirc] = *dirp;
@@ -102,7 +102,7 @@ int count_dir(minode *mip) {
     get_block(mip->me, mip->inode.i_block[i], buf);
     dirp = (dir_entry *)buf;
     bufp = buf;
-    // todo: double check this condition
+    // TODO: double check this condition
     while (bufp < buf + BLKSIZE_1024) {
       snprintf(temp, dirp->name_len + 1, "%s", dirp->name);
       DEBUG_PRINT("ino:%d rec_len:%d name_len:%u name:%s\n", dirp->inode,

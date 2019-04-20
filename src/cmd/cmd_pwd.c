@@ -30,7 +30,7 @@ int _pwd(minode *mip) {
       get_block(mip->me, mip->inode.i_block[i], buf2);
       dirp = (dir_entry *)buf2;
       buf2p = buf2;
-      // todo: double check this condition
+      // TODO: double check this condition
       while (buf2p < buf2 + BLKSIZE_1024) {
         dirp = (dir_entry *)buf2p;
         buf2p += dirp->rec_len;

@@ -106,19 +106,19 @@ int open_file(char *path, int mode) {
   oftp->minode = mip;
   oftp->offset = 0;
   // mode = 0|1|2|3 for R|W|RW|APPEND
-  // todo: we aren't actually checking file permissions?
+  // TODO: we aren't actually checking file permissions?
   if (mode == 0)
-    // todo: update atime
+    // TODO: update atime
     oftp->mode = 0;
   else if (mode == 1) {
-    // todo: update atime and mtime
+    // TODO: update atime and mtime
     oftp->mode = 1;
     free_i_block(mip);
   } else if (mode == 2) {
-    // todo: update atime and mtime
+    // TODO: update atime and mtime
     oftp->mode = 2;
   } else if (mode == 3) {
-    // todo: update atime and mtime
+    // TODO: update atime and mtime
     oftp->mode = 3;
     oftp->offset = mip->inode.i_size;
   } else {
