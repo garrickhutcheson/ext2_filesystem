@@ -30,5 +30,16 @@ int _cp(char *src, char *dest) {
     write_file(dest_fd, buf, n);
     copied += n;
   }
+
+  // close src;
+  if ((close_file(src_fd)) < 0) {
+    printf("failed to close src\n");
+    return 0;
+  }
+  // close dest;
+  if ((close_file(dest_fd)) < 0) {
+    printf("failed to close dest\n");
+    return 0;
+  }
   return copied;
 }

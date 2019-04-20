@@ -1,11 +1,11 @@
 #include "cmd.h"
 
 bool do_unlink(cmd *c) {
-  if (c->argc < 2) {
+  if (c->argc != 2) {
     printf("Usage: unlink <filename>\n");
     return false;
   }
-  return true;
+  return _unlink(c->argv[1]);
 }
 
 int _unlink(char *dest) {
@@ -25,8 +25,12 @@ int _unlink(char *dest) {
   parent = search_path(in_path);
   mip->inode.i_links_count--;
   if (!mip->inode.i_links_count) {
+    DEBUG_PRINT("freeing ino %d\n", mip->ino);
     free_i_block(mip);
     free_inode(mip->me, mip->ino);
+  } else {
+    DEBUG_PRINT("ino %d link count now %d\n", mip->ino,
+                mip->inode.i_links_count);
   }
   rm_dir_entry(parent, bname);
   mip->dirty = true;

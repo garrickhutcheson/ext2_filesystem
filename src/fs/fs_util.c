@@ -44,7 +44,7 @@ int alloc_block(mount_entry *me) {
       set_bit(buf, i);
       me->group_desc.bg_free_blocks_count--;
       put_block(me, me->group_desc.bg_block_bitmap, buf);
-      return i;
+      return i + 1;
     }
   }
   return 0;
@@ -54,7 +54,7 @@ int alloc_block(mount_entry *me) {
 int free_block(mount_entry *me, int bno) {
   char buf[BLKSIZE_1024];
   get_block(me, me->group_desc.bg_block_bitmap, buf);
-  clr_bit(buf, bno);
+  clr_bit(buf, bno - 1);
   me->group_desc.bg_free_blocks_count++;
   put_block(me, me->group_desc.bg_block_bitmap, buf);
   return 1;
@@ -64,11 +64,11 @@ int free_block(mount_entry *me, int bno) {
 
 // read block to buf from disk
 // return 1 on success, 0 on failure
-int get_block(mount_entry *me, int blk, char *buf) {
-  lseek(me->fd, blk * BLKSIZE_1024, SEEK_SET);
+int get_block(mount_entry *me, int bno, char *buf) {
+  lseek(me->fd, bno * BLKSIZE_1024, SEEK_SET);
   int n = read(me->fd, buf, BLKSIZE_1024);
   if (n < 0) {
-    printf("get_block[% d % d] error \n", me->fd, blk);
+    printf("get_block[% d % d] error \n", me->fd, bno);
     return 0;
   }
   return 1;
@@ -76,11 +76,11 @@ int get_block(mount_entry *me, int blk, char *buf) {
 
 // write block from buf to disk
 // return 1 on success, 0 on failure
-int put_block(mount_entry *me, int blk, char *buf) {
-  lseek(me->fd, blk * BLKSIZE_1024, SEEK_SET);
+int put_block(mount_entry *me, int bno, char *buf) {
+  lseek(me->fd, bno * BLKSIZE_1024, SEEK_SET);
   int n = write(me->fd, buf, BLKSIZE_1024);
   if (n != BLKSIZE_1024) {
-    printf("put_block [%d %d] error\n", me->fd, blk);
+    printf("put_block [%d %d] error\n", me->fd, bno);
     return 0;
   }
   return 1;

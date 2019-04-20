@@ -18,6 +18,10 @@ bool do_cat(cmd *c) {
     mybuf[n] = 0;        // as a null terminated string
     printf("%s", mybuf); // <=== THIS works but not good
   }
-  close_file(fd);
+  printf("\n");
+  if (close_file(fd) < 0) {
+    printf("fail to close file\n");
+    return false;
+  }
   return true;
 }

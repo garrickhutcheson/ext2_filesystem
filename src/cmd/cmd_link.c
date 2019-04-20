@@ -36,7 +36,7 @@ int _link(char *src, char *dest) {
   add_dir_entry(dest_parent, dep);
   mip->inode.i_links_count++;
 
-  DEBUG_PRINT("link file with ino %d\n", mip->ino);
+  DEBUG_PRINT("ino %d link count %d\n", mip->ino, mip->inode.i_links_count);
   // write back to disk / put
   mip->dirty = true;
   put_minode(mip);

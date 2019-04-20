@@ -244,14 +244,6 @@ int write_file(int fd, void *buf, unsigned int count) {
       *bnop = new_bno;
       if (it.map1_bno)
         put_block(oftp->minode->me, it.map1_bno, (char *)it.map1);
-      else {
-        for (int i = 0; i < 12; i++)
-          if (!oftp->minode->inode.i_block[i]) {
-            oftp->minode->inode.i_block[i] = *bnop;
-            oftp->minode->dirty = true;
-            break;
-          }
-      }
     }
 
     // figure out how much of block to copy
