@@ -10,7 +10,7 @@ int main(int argc, char const *argv[]) {
   // init globals
   fs_init();
   // read device meta data
-  mount_entry *me = mount_device(root_dev, "/");
+  mount_entry *me = make_me(root_dev, "/");
   global_root_inode = me->root;
   global_root_mount = me;
 

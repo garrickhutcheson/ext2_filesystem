@@ -186,7 +186,7 @@ bool put_minode(minode *);
 
 // fs_mount
 int fs_init();
-mount_entry *mount_device(char *, char *);
+mount_entry *make_me(char *, char *);
 
 // fs_path
 int parse_path(char *, path *);

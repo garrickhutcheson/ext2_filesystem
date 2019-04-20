@@ -26,16 +26,17 @@ int fs_init() {
   return 0;
 }
 
-mount_entry *mount_device(char *dev_path, char *mnt_path) {
+mount_entry *make_me(char *dev_path, char *mnt_path) {
   mount_entry *me;
   int meno;
   char buf[BLKSIZE_1024];
+  // open 'device'
   int dev = open(dev_path, O_RDWR);
   if (dev < 0) {
     printf("panic : can’t open device\n");
     exit(1);
   }
-  // find next mount entry
+  // alloc mount entry
   for (meno = 0; meno < NUM_MOUNT_ENTRIES + 1; meno++) {
     if (meno == NUM_MOUNT_ENTRIES) {
       printf("panic: cannot mount");

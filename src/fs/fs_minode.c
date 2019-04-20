@@ -28,7 +28,7 @@ minode *get_minode(mount_entry *me, int ino) {
   // search in-memory minodes first
   for (i = 0; i < NUM_MINODES; i++) {
     minode *mip = &minode_arr[i];
-    if (mip->ref_count && (mip->me == me) && (mip->ino == ino)) {
+    if (mip->ref_count && (mip->ino == ino)) {
       mip->ref_count++;
       return mip;
     }

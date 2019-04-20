@@ -36,6 +36,8 @@ bool do_cmd(cmd *c) {
     do_lseek(c);
   } else if (!strcmp(c->argv[0], "mkdir")) {
     do_mkdir(c);
+  } else if (!strcmp(c->argv[0], "mount")) {
+    do_mount(c);
   } else if (!strcmp(c->argv[0], "mv")) {
     do_mv(c);
   } else if (!strcmp(c->argv[0], "open")) {
@@ -57,7 +59,7 @@ bool do_cmd(cmd *c) {
   } else if (!strcmp(c->argv[0], "write")) {
     do_write(c);
   } else if (!strcmp(c->argv[0], "quit")) {
-    // TODO: should this write to disk first?
+    // TODO: umount drives and write back all
     exit(0);
   } else {
     printf("command not recognized: %s\n", c->argv[0]);
