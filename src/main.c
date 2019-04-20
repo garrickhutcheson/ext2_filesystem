@@ -22,7 +22,10 @@ int main(int argc, char const *argv[]) {
     DEBUG_PRINT("running->pid == %d\n", running->pid);
 
     // prompt and read
-    printf("INPUT STEPHANIE INPUT!!! :");
+    printf("%d@", running->gid);
+    _pwd(running->cwd);
+    printf(": ");
+
     fgets(line, 128, stdin);
     line[strlen(line) - 1] = 0;
     if (!line[0])
