@@ -11,8 +11,7 @@ int main(int argc, char const *argv[]) {
   fs_init();
   // read device meta data
   mount_entry *me = make_me(root_dev, "/");
-  global_root_inode = me->root;
-  global_root_mount = me;
+  global_root_inode = me->mnt_pnt;
 
   for (int i = 0; i < NUM_PROCS; i++)
     proc_arr[i].cwd = global_root_inode;
@@ -22,9 +21,7 @@ int main(int argc, char const *argv[]) {
     DEBUG_PRINT("running->pid == %d\n", running->pid);
 
     // prompt and read
-    printf("%d@", running->gid);
-    _pwd(running->cwd);
-    printf(": ");
+    printf("Enter command: ");
 
     fgets(line, 128, stdin);
     line[strlen(line) - 1] = 0;

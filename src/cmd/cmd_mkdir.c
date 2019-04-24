@@ -26,9 +26,9 @@ int _mkdir(char *dest) {
     printf("Can't add file to non-directory\n");
     return 0;
   }
-  int ino = alloc_inode(parent->me);
+  int ino = alloc_inode(parent->dev);
 
-  minode *child = get_minode(parent->me, ino);
+  minode *child = get_minode(parent->dev, ino);
   child->inode.i_mode = 0x41ED;       // OR 040755: DIR type and permissions
   child->inode.i_uid = running->uid;  // Owner uid
   child->inode.i_gid = running->gid;  // Group Id

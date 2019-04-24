@@ -19,7 +19,7 @@ bool do_ls(cmd *c) {
   }
   entryc = list_dir(cur_dir, dep);
   for (int i = 0; i < entryc; i++) {
-    minode *file = get_minode(cur_dir->me, dep[i].inode);
+    minode *file = get_minode(cur_dir->dev, dep[i].inode);
     // printf("%s\n", dep[i].name);
     char filename[256] = {0};
     strncpy(filename, dep[i].name, dep[i].name_len);

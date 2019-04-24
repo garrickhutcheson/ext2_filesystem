@@ -90,8 +90,10 @@ typedef struct minode {
   int ref_count;
   // modified flag
   bool dirty;
-  // mount entry pointer
-  struct mount_entry *me;
+  // mount point transition
+  struct mount_entry *mnt;
+  // device containing inode
+  struct mount_entry *dev;
   // ignored for simple FS
   // int lock;
 } minode;
@@ -124,12 +126,10 @@ typedef struct proc {
 
 // Mount Entry structure
 typedef struct mount_entry {
-  // mounted flag
-  bool mounted;
   // device file descriptor
   int fd;
   // device root inode
-  minode *root;
+  minode *mnt_pnt;
   // device path ex: ~/project/exampledisk
   char dev_path[64];
   // mount path ex: / for root, /A or /B or /C ... for non-root

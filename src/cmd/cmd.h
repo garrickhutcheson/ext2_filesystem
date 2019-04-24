@@ -22,6 +22,7 @@ bool do_link(cmd *);
 bool do_ls(cmd *);
 bool do_lseek(cmd *);
 bool do_mkdir(cmd *);
+bool do_mount(cmd *);
 bool do_mv(cmd *);
 bool do_open(cmd *);
 bool do_pwd(cmd *);
@@ -30,6 +31,7 @@ bool do_rmdir(cmd *);
 bool do_stat(cmd *);
 bool do_symlink(cmd *);
 bool do_touch(cmd *);
+bool do_umount(cmd *);
 bool do_unlink(cmd *);
 bool do_write(cmd *);
 
@@ -40,9 +42,11 @@ int _creat(char *);
 int _link(char *, char *);
 int _ls_file(minode *, char *);
 int _mkdir(char *);
+int _mount(char *, char *);
 int _pwd(minode *);
 int _rmdir(char *);
 int _symlink(char *, char *);
+int _umount(char *);
 int _unlink(char *);
 
 // utility

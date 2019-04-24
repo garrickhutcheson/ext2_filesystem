@@ -27,7 +27,7 @@ int _unlink(char *dest) {
   if (!mip->inode.i_links_count) {
     DEBUG_PRINT("freeing ino %d\n", mip->ino);
     free_i_block(mip);
-    free_inode(mip->me, mip->ino);
+    free_inode(mip->dev, mip->ino);
   } else {
     DEBUG_PRINT("ino %d link count now %d\n", mip->ino,
                 mip->inode.i_links_count);

@@ -44,7 +44,7 @@ int _rmdir(char *dest) {
   for (int i = 0; i < 12; i++) {
     if (mip->inode.i_block[i] == 0)
       continue;
-    free_block(mip->me, mip->inode.i_block[i]);
+    free_block(mip->dev, mip->inode.i_block[i]);
   }
   free_minode(mip);
   put_minode(mip);

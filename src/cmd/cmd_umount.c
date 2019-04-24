@@ -8,4 +8,7 @@ bool do_umount(cmd *c) {
   return _umount(c->argv[1]);
 }
 
-int _umount(char *dir) { return 0; }
+int _umount(char *dir) {
+  printf("not implemented\n");
+  return 0;
+}

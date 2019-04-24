@@ -7,7 +7,7 @@ int fs_init() {
     minode_arr[i].ref_count = 0;
   // initialize mount entries
   for (i = 0; i < NUM_MOUNT_ENTRIES; i++)
-    mount_entry_arr[i].mounted = false;
+    mount_entry_arr[i].fd = 0;
   // initialize PROCs
   for (i = 0; i < NUM_PROCS; i++) {
     proc_arr[i].status = PROC_FREE;
@@ -27,33 +27,34 @@ int fs_init() {
 }
 
 mount_entry *make_me(char *dev_path, char *mnt_path) {
-  mount_entry *me;
-  int meno;
-  char buf[BLKSIZE_1024];
+
   // open 'device'
   int dev = open(dev_path, O_RDWR);
   if (dev < 0) {
     printf("panic : can’t open device\n");
-    exit(1);
+    return NULL;
   }
+
   // alloc mount entry
+  int meno;
+  mount_entry *me;
   for (meno = 0; meno < NUM_MOUNT_ENTRIES + 1; meno++) {
     if (meno == NUM_MOUNT_ENTRIES) {
       printf("panic: cannot mount");
       return NULL;
     }
     me = &mount_entry_arr[meno];
-    if (!me->mounted)
+    if (!me->fd)
       break;
   }
 
   // set fd and names
-  me->mounted = true;
   me->fd = dev;
   strcpy(me->dev_path, dev_path);
   strcpy(me->mnt_path, mnt_path);
 
   // get super block to me
+  char buf[BLKSIZE_1024];
   get_block(me, 1, buf);
   me->super_block = *(super_block *)buf;
 
@@ -67,9 +68,10 @@ mount_entry *make_me(char *dev_path, char *mnt_path) {
   get_block(me, 2, buf);
   me->group_desc = *(group_desc *)buf;
 
-  // call get_minode(), which inc minode’s ref_count
-  me->root = get_minode(me, 2);
+  // read root inode into me
+  me->mnt_pnt = get_minode(me, 2);
 
-  DEBUG_PRINT("mounted %s to with fd %d\n", me->mnt_path, me->fd);
+  DEBUG_PRINT("mounted %s to %s with fd %d\n", me->dev_path, me->mnt_path,
+              me->fd);
   return me;
 }

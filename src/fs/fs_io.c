@@ -33,7 +33,7 @@ int *get_lbk(blk_iter *it, int target) {
       triple_end = double_end + blks_per * blks_per * blks_per;
   // pointers for shorter names
   unsigned int *i_block = it->mip->inode.i_block;
-  mount_entry *me = it->mip->me;
+  mount_entry *dev = it->mip->dev;
   // null check
   if (!it || !it->mip)
     return 0;
@@ -47,36 +47,38 @@ int *get_lbk(blk_iter *it, int target) {
     // get indirect block
     if (!(it->lbkno >= indirect_start && it->lbkno < indirect_end))
       // check if map1 cached
-      get_block(me, it->map1_bno = i_block[12], (char *)it->map1);
+      get_block(dev, it->map1_bno = i_block[12], (char *)it->map1);
     bno = &it->map1[target - indirect_start];
   } else if (target < double_end) {
     it->map3_bno = 0;
     // get double indirect block
     if (!(it->lbkno >= double_start && it->lbkno < double_end))
       // check if map2 cached
-      get_block(me, it->map2_bno = i_block[13], (char *)it->map2);
+      get_block(dev, it->map2_bno = i_block[13], (char *)it->map2);
     if (!((target - double_start) / blks_per ==
           (it->lbkno - double_start) / blks_per))
       // check if map1 cached
-      get_block(me, it->map1_bno = it->map2[(target - double_start) / blks_per],
+      get_block(dev,
+                it->map1_bno = it->map2[(target - double_start) / blks_per],
                 (char *)it->map1);
     bno = &it->map1[(target - double_start) % blks_per];
   } else if (target < triple_end) {
     // triple  indirect blocks
     if (!(it->lbkno >= triple_start && it->lbkno < triple_end))
       // check if map3 cached
-      get_block(me, it->map3_bno = i_block[14], (char *)it->map3);
+      get_block(dev, it->map3_bno = i_block[14], (char *)it->map3);
     if (!((target - triple_start) / (blks_per * blks_per) ==
           (it->lbkno - triple_start) / (blks_per * blks_per)))
       // check if map2 cached
-      get_block(me,
+      get_block(dev,
                 it->map2_bno =
                     it->map3[(target - triple_start) / (blks_per * blks_per)],
                 (char *)it->map2);
     if (!((target - triple_start) / blks_per ==
           (it->lbkno - triple_start) / blks_per))
       // check if map1 cached
-      get_block(me, it->map1_bno = it->map2[(target - triple_start) / blks_per],
+      get_block(dev,
+                it->map1_bno = it->map2[(target - triple_start) / blks_per],
                 (char *)it->map1);
     bno = &it->map1[(target - triple_start) % blks_per];
   }
@@ -202,7 +204,7 @@ int read_file(int fd, void *buf, unsigned int count) {
     if (!(bno = *get_lbk(&it, tar_lbk)))
       return 0;
     // get full ass block
-    get_block(oftp->minode->me, bno, blk_buf);
+    get_block(oftp->minode->dev, bno, blk_buf);
 
     // figure out how much of block to copy
     to_copy = ((mid = (count > avil ? avil : count)) > remain) ? remain : mid;
@@ -240,10 +242,10 @@ int write_file(int fd, void *buf, unsigned int count) {
     bnop = get_lbk(&it, tar_lbk);
     *bnop;
     if (!(*bnop)) {
-      int new_bno = alloc_block(oftp->minode->me);
+      int new_bno = alloc_block(oftp->minode->dev);
       *bnop = new_bno;
       if (it.map1_bno)
-        put_block(oftp->minode->me, it.map1_bno, (char *)it.map1);
+        put_block(oftp->minode->dev, it.map1_bno, (char *)it.map1);
     }
 
     // figure out how much of block to copy
@@ -251,11 +253,11 @@ int write_file(int fd, void *buf, unsigned int count) {
 
     // read full ass block if needed
     if (to_copy < BLKSIZE_1024)
-      get_block(oftp->minode->me, *bnop, blk_buf);
+      get_block(oftp->minode->dev, *bnop, blk_buf);
 
     // copy that much to block
     memcpy(blk_buf + tar_byte, src, to_copy);
-    put_block(oftp->minode->me, *bnop, blk_buf);
+    put_block(oftp->minode->dev, *bnop, blk_buf);
     // increment buf pointer  by amount copied
     src += to_copy;
     // increment offset by amount copied

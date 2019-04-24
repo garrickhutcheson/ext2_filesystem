@@ -18,7 +18,7 @@ bool do_mv(cmd *c) {
     printf("bad path\n");
     return 0;
   }
-  if (dest_parent->me != mip->me)
+  if (dest_parent->dev != mip->dev)
     return _cp(c->argv[1], c->argv[2]);
   else {
     return (_link(c->argv[1], c->argv[2]) && _unlink(c->argv[1]));

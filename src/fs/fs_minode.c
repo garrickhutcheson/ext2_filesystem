@@ -20,7 +20,7 @@ bool free_minode(minode *mip) {
 }
 
 // Returns a pointer to the in-memory minode containing the INODE of (me, ino).
-minode *get_minode(mount_entry *me, int ino) {
+minode *get_minode(mount_entry *dev, int ino) {
   minode *mip;
   inode *ip;
   int i, block, offset;
@@ -28,15 +28,15 @@ minode *get_minode(mount_entry *me, int ino) {
   // search in-memory minodes first
   for (i = 0; i < NUM_MINODES; i++) {
     minode *mip = &minode_arr[i];
-    if (mip->ref_count && (mip->ino == ino)) {
+    if (mip->ref_count && (mip->dev == dev) && (mip->ino == ino)) {
       mip->ref_count++;
       return mip;
     }
   }
   mip = alloc_minode();
-  block = (ino - 1) / 8 + me->group_desc.bg_inode_table;
+  block = (ino - 1) / 8 + dev->group_desc.bg_inode_table;
   offset = (ino - 1) % 8;
-  get_block(me, block, buf);
+  get_block(dev, block, buf);
   ip = (inode *)buf + offset;
   // initialize minode
   // TODO: check if mount_entry is set correctly
@@ -45,8 +45,10 @@ minode *get_minode(mount_entry *me, int ino) {
       .ino = ino,
       .ref_count = 1,
       .dirty = 0,
-      .me = me,
+      .mnt = NULL,
+      .dev = dev,
   };
+
   return mip;
 }
 
@@ -69,10 +71,10 @@ bool put_minode(minode *mip) {
   block = (mip->ino - 1) / 8 + mount_entry_arr[0].group_desc.bg_inode_table;
   offset = (mip->ino - 1) % 8;
   // get block containing this inode
-  get_block(mip->me, block, buf);
+  get_block(mip->dev, block, buf);
   ip = (inode *)buf + offset;
   *ip = mip->inode;
-  put_block(mip->me, block, buf);
+  put_block(mip->dev, block, buf);
   free_minode(mip);
   return true;
 }

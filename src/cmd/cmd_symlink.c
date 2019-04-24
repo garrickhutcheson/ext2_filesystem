@@ -30,8 +30,8 @@ int _symlink(char *dest, char *src) {
            "link...\n");
     return 0;
   }
-  int ino = alloc_inode(dest_parent->me);
-  minode *child = get_minode(dest_parent->me, ino);
+  int ino = alloc_inode(dest_parent->dev);
+  minode *child = get_minode(dest_parent->dev, ino);
 
   child->inode.i_mode = 0120000;     // LNK type and permissions
   child->inode.i_uid = running->uid; // Owner uid
