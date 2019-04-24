@@ -7,8 +7,13 @@ bool do_umount(cmd *c) {
   }
   return _umount(c->argv[1]);
 }
-
+// TODO: write back to disk
 int _umount(char *dir) {
-  printf("not implemented\n");
+  path mnt_path;
+  parse_path(dir, &mnt_path);
+  minode *mip = search_path(mnt_path);
+  mip->ref_count = 0;
+  mip->dirty = false;
+  put_minode(mip);
   return 0;
 }

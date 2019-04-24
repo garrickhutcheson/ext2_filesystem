@@ -26,6 +26,9 @@ int fs_init() {
   return 0;
 }
 
+// returns a globally allocated mount_entry pointer
+// null on failure
+// mount_entry->mnt_pnt is set to root minode by default
 mount_entry *make_me(char *dev_path, char *mnt_path) {
 
   // open 'device'
@@ -68,8 +71,8 @@ mount_entry *make_me(char *dev_path, char *mnt_path) {
   get_block(me, 2, buf);
   me->group_desc = *(group_desc *)buf;
 
-  // read root inode into me
-  me->mnt_pnt = get_minode(me, 2);
+  // init mnt pnt to NULL
+  me->mnt_pnt = NULL;
 
   DEBUG_PRINT("mounted %s to %s with fd %d\n", me->dev_path, me->mnt_path,
               me->fd);

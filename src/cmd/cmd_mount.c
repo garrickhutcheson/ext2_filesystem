@@ -12,27 +12,29 @@ int _mount(char *dev, char *dir) {
 
   // make a directory at dir
   _mkdir(dir);
+
   // search for the directory we just made
-  minode *mip;
+  minode *mnt_dir;
   path dir_path;
   parse_path(dir, &dir_path);
-  if (!(mip = search_path(dir_path))) {
+  if (!(mnt_dir = search_path(dir_path))) {
     printf("bad path given for mount point\n");
-    put_minode(mip);
+    put_minode(mnt_dir);
     return false;
   }
+
   // make mount entry for device
   mount_entry *me = make_me(dev, dir);
 
   // set device mount point to minode
-  inode root = me->mnt_pnt->inode;
-  put_minode(me->mnt_pnt);
-  me->mnt_pnt = mip;
+  me->mnt_pnt = mnt_dir;
+
+  minode *root = get_minode(me, 2);
+  mnt_dir->inode = root->inode;
 
   // shadow new dir's ino with mnt point
-  mip->mnt = me;
-  mip->inode = root;
-  mip->dirty = false;
+  mnt_dir->mnt = me;
+  mnt_dir->dirty = false;
 
-  return mip->ino;
+  return mnt_dir->ino;
 }

@@ -127,9 +127,13 @@ minode *search_path(path target_path) {
 
   // search for each token string
   for (int i = 0; i < target_path.argc; i++) {
-
     ino = search_dir(mip, target_path.argv[i]);
-
+    // traverse up to mnt point from mnt device
+    if (ino == 2 && mip->ino == 2) {
+      minode *newmip = mip->dev->mnt_pnt;
+      put_minode(mip);
+      mip = newmip;
+    }
     if (!ino) {
       printf("no such component name %s\n", target_path.argv[i]);
       put_minode(mip);
@@ -137,6 +141,11 @@ minode *search_path(path target_path) {
     }
     minode *prev_mip = mip;
     mip = get_minode(mip->dev, ino);
+    // traverse down to mnt device
+    if (mip->mnt) {
+      minode *newmip = get_minode(mip->mnt, 2);
+      mip = newmip;
+    }
     if (S_ISLNK(mip->inode.i_mode)) { // handle symlink
       if (i == target_path.argc - 1)  // if last entry return symlink
         return mip;

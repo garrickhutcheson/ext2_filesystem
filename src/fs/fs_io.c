@@ -33,7 +33,7 @@ int *get_lbk(blk_iter *it, int target) {
       triple_end = double_end + blks_per * blks_per * blks_per;
   // pointers for shorter names
   unsigned int *i_block = it->mip->inode.i_block;
-  mount_entry *dev = it->mip->dev;
+  mount_entry *me = it->mip->dev;
   // null check
   if (!it || !it->mip)
     return 0;
@@ -47,38 +47,36 @@ int *get_lbk(blk_iter *it, int target) {
     // get indirect block
     if (!(it->lbkno >= indirect_start && it->lbkno < indirect_end))
       // check if map1 cached
-      get_block(dev, it->map1_bno = i_block[12], (char *)it->map1);
+      get_block(me, it->map1_bno = i_block[12], (char *)it->map1);
     bno = &it->map1[target - indirect_start];
   } else if (target < double_end) {
     it->map3_bno = 0;
     // get double indirect block
     if (!(it->lbkno >= double_start && it->lbkno < double_end))
       // check if map2 cached
-      get_block(dev, it->map2_bno = i_block[13], (char *)it->map2);
+      get_block(me, it->map2_bno = i_block[13], (char *)it->map2);
     if (!((target - double_start) / blks_per ==
           (it->lbkno - double_start) / blks_per))
       // check if map1 cached
-      get_block(dev,
-                it->map1_bno = it->map2[(target - double_start) / blks_per],
+      get_block(me, it->map1_bno = it->map2[(target - double_start) / blks_per],
                 (char *)it->map1);
     bno = &it->map1[(target - double_start) % blks_per];
   } else if (target < triple_end) {
     // triple  indirect blocks
     if (!(it->lbkno >= triple_start && it->lbkno < triple_end))
       // check if map3 cached
-      get_block(dev, it->map3_bno = i_block[14], (char *)it->map3);
+      get_block(me, it->map3_bno = i_block[14], (char *)it->map3);
     if (!((target - triple_start) / (blks_per * blks_per) ==
           (it->lbkno - triple_start) / (blks_per * blks_per)))
       // check if map2 cached
-      get_block(dev,
+      get_block(me,
                 it->map2_bno =
                     it->map3[(target - triple_start) / (blks_per * blks_per)],
                 (char *)it->map2);
     if (!((target - triple_start) / blks_per ==
           (it->lbkno - triple_start) / blks_per))
       // check if map1 cached
-      get_block(dev,
-                it->map1_bno = it->map2[(target - triple_start) / blks_per],
+      get_block(me, it->map1_bno = it->map2[(target - triple_start) / blks_per],
                 (char *)it->map1);
     bno = &it->map1[(target - triple_start) % blks_per];
   }

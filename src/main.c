@@ -11,6 +11,8 @@ int main(int argc, char const *argv[]) {
   fs_init();
   // read device meta data
   mount_entry *me = make_me(root_dev, "/");
+  // make root mnt pnt be root
+  me->mnt_pnt = get_minode(me, 2);
   global_root_inode = me->mnt_pnt;
 
   for (int i = 0; i < NUM_PROCS; i++)

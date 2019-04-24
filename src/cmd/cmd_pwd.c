@@ -22,27 +22,34 @@ int _pwd(minode *mip) {
     get_block(mip->dev, mip->inode.i_block[0], buf1);
     this_dir = (dir_entry *)buf1;
     parent_dir = (dir_entry *)(buf1 + this_dir->rec_len);
-    mip = get_minode(mip->dev, parent_dir->inode);
+    minode *pip = get_minode(mip->dev, parent_dir->inode);
 
-    for (int i = 0; i < 12 && !(*name); i++) { // search direct blocks only
-      if (mip->inode.i_block[i] == 0)
-        break;
-      get_block(mip->dev, mip->inode.i_block[i], buf2);
-      dirp = (dir_entry *)buf2;
-      buf2p = buf2;
-      // TODO: double check this condition
-      while (buf2p < buf2 + BLKSIZE_1024) {
-        dirp = (dir_entry *)buf2p;
-        buf2p += dirp->rec_len;
-        if (dirp->inode == this_dir->inode) {
-          strncpy(name, dirp->name, dirp->name_len);
-          name[dirp->name_len] = '\0';
+    if (mip->ino == pip->ino) {
+      minode *newpip = mip->mnt->mnt_pnt;
+      put_minode(pip);
+      pip = newpip;
+    } else {
+
+      for (int i = 0; i < 12 && !(*name); i++) { // search direct blocks only
+        if (pip->inode.i_block[i] == 0)
           break;
+        get_block(pip->dev, pip->inode.i_block[i], buf2);
+        dirp = (dir_entry *)buf2;
+        buf2p = buf2;
+        // TODO: double check this condition
+        while (buf2p < buf2 + BLKSIZE_1024) {
+          dirp = (dir_entry *)buf2p;
+          buf2p += dirp->rec_len;
+          if (dirp->inode == this_dir->inode) {
+            strncpy(name, dirp->name, dirp->name_len);
+            name[dirp->name_len] = '\0';
+            break;
+          }
         }
       }
+      put_minode(pip);
     }
-    put_minode(mip);
-    _pwd(mip); // recursive call
+    _pwd(pip); // recursive call
     printf("/%s", name);
   }
 }
