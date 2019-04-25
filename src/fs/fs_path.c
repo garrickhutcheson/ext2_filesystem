@@ -76,7 +76,6 @@ int list_dir(minode *mip, dir_entry *dir_arr) {
     get_block(mip->dev, mip->inode.i_block[i], buf);
     dirp = (dir_entry *)buf;
     fs_p = buf;
-    // TODO: double check this condition
     while (fs_p < buf + BLKSIZE_1024) {
       dirp = (dir_entry *)fs_p;
       dir_arr[dirc] = *dirp;
@@ -101,7 +100,6 @@ int count_dir(minode *mip) {
     get_block(mip->dev, mip->inode.i_block[i], buf);
     dirp = (dir_entry *)buf;
     bufp = buf;
-    // TODO: double check this condition
     while (bufp < buf + BLKSIZE_1024) {
       snprintf(temp, dirp->name_len + 1, "%s", dirp->name);
       DEBUG_PRINT("ino:%d rec_len:%d name_len:%u name:%s\n", dirp->inode,

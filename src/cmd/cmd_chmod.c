@@ -14,7 +14,7 @@ bool do_chmod(cmd *c) {
   // long int strtol (const char* str, char** endptr, int base);
   // if given base == 0 then base is determined by +, -,O, OX/Ox prefix
   unsigned int mode = strtol(c->argv[1], NULL, 0);
-  mip->inode.i_mode |= mode;
+  mip->inode.i_mode |= (__u16)mode;
   mip->dirty = true;
   put_minode(mip);
   return true;

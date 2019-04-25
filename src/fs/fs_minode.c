@@ -39,7 +39,6 @@ minode *get_minode(mount_entry *dev, int ino) {
   get_block(dev, block, buf);
   ip = (inode *)buf + offset;
   // initialize minode
-  // TODO: check if mount_entry is set correctly
   *mip = (minode){
       .inode = *ip,
       .ino = ino,

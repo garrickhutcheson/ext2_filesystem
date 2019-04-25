@@ -36,7 +36,6 @@ int _pwd(minode *mip) {
         get_block(pip->dev, pip->inode.i_block[i], buf2);
         dirp = (dir_entry *)buf2;
         buf2p = buf2;
-        // TODO: double check this condition
         while (buf2p < buf2 + BLKSIZE_1024) {
           dirp = (dir_entry *)buf2p;
           buf2p += dirp->rec_len;

@@ -63,7 +63,16 @@ bool do_cmd(cmd *c) {
   } else if (!strcmp(c->argv[0], "write")) {
     do_write(c);
   } else if (!strcmp(c->argv[0], "quit")) {
-    // TODO: umount drives and write back all
+    for (int i = 0; i < NUM_MINODES; i++) {
+      if (minode_arr[i].ref_count) {
+        minode_arr[i].ref_count = 1;
+        put_minode(&minode_arr[i]);
+      }
+    }
+    for (int i = 0; i < NUM_MOUNT_ENTRIES; i++) {
+      if (mount_entry_arr[i].fd)
+        _umount(mount_entry_arr[i].mnt_path);
+    }
     exit(0);
   } else {
     printf("command not recognized: %s\n", c->argv[0]);
