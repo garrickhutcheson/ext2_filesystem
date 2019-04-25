@@ -25,7 +25,7 @@ int _pwd(minode *mip) {
     minode *pip = get_minode(mip->dev, parent_dir->inode);
 
     if (mip->ino == pip->ino) {
-      minode *newpip = mip->mnt->mnt_pnt;
+      minode *newpip = mip->dev->mnt_pnt;
       put_minode(pip);
       pip = newpip;
     } else {

@@ -5,7 +5,7 @@ bool do_link(cmd *c) {
     printf("Usage: link <src filename> <dest filename>\n");
     return false;
   }
-  return _link(c->argv[1], c->argv[1]);
+  return _link(c->argv[1], c->argv[2]);
 }
 
 int _link(char *src, char *dest) {

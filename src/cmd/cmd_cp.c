@@ -27,7 +27,8 @@ int _cp(char *src, char *dest) {
   }
   // copy data
   while (n = read_file(src_fd, buf, BLKSIZE_1024)) {
-    write_file(dest_fd, buf, n);
+    int written = write_file(dest_fd, buf, n);
+    DEBUG_PRINT("wrote %d\n", written);
     copied += n;
   }
 

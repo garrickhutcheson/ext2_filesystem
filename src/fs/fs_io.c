@@ -1,4 +1,3 @@
-
 #include "fs.h"
 
 // allocate a free oft for use
@@ -19,6 +18,101 @@ bool free_oft(oft *op) {
   op->ref_count = 0;
   return true;
 }
+int *add_lbk(blk_iter *it) {
+
+  mount_entry *me = it->mip->dev;
+  int last_bno = it->mip->inode.i_size / BLKSIZE_1024;
+  get_lbk(it, last_bno);
+
+  if (it->map1_bno) {
+    for (int i = 0; i < BLKSIZE_1024 / sizeof(int); i++) {
+      if (!it->map1[i]) {
+        it->map1[i] = alloc_block(me);
+        if (i + 1 < BLKSIZE_1024 / sizeof(int))
+          it->map1[i + 1] = 0;
+        put_block(me, it->map1_bno, (char *)it->map1);
+        return &it->map1[i];
+      }
+    }
+  }
+  if (it->map2_bno) {
+    for (int i = 0; i < BLKSIZE_1024 / sizeof(int); i++) {
+      if (!it->map2[i]) {
+        it->map2[i] = alloc_block(me);
+        put_block(me, it->map2_bno, (char *)it->map2);
+        it->map1_bno = it->map2[i];
+        get_block(me, it->map1_bno, (char *)it->map1);
+        it->map1[0] = alloc_block(me);
+        it->map1[1] = 0;
+        put_block(me, it->map1_bno, (char *)it->map1);
+        return &it->map1[0];
+      }
+    }
+  }
+  if (it->map3_bno) {
+    for (int i = 0; i < BLKSIZE_1024 / sizeof(int); i++) {
+      if (!it->map3[i]) {
+        it->map3[i] = alloc_block(me);
+        put_block(me, it->map3_bno, (char *)it->map3);
+        it->map2_bno = it->map3[i];
+        get_block(me, it->map2_bno, (char *)it->map2);
+        it->map2[0] = alloc_block(me);
+        it->map2[1] = 0;
+        put_block(me, it->map2_bno, (char *)it->map2);
+        it->map1_bno = it->map2[0];
+        get_block(me, it->map1_bno, (char *)it->map1);
+        it->map1[0] = alloc_block(me);
+        it->map1[1] = 0;
+        put_block(me, it->map1_bno, (char *)it->map1);
+        return &it->map1[0];
+      }
+    }
+  }
+
+  inode *ip = &it->mip->inode;
+  for (int i = 0; i < 15; i++) {
+    if (!ip->i_block[i]) {
+      ip->i_block[i] = alloc_block(me); // always need one
+      if (i == 12) {                    // one more blocks
+        get_block(me, ip->i_block[12], (char *)it->map1);
+        it->map1_bno = ip->i_block[12];
+        it->map1[0] = alloc_block(me);
+        it->map1[1] = 0;
+        put_block(me, ip->i_block[12], (char *)it->map1);
+        return &it->map1[0];
+      } else if (i == 13) { // two more blocks
+        get_block(me, ip->i_block[13], (char *)it->map2);
+        it->map2_bno = ip->i_block[13];
+        it->map2[0] = alloc_block(me);
+        it->map2[1] = 0;
+        put_block(me, ip->i_block[13], (char *)it->map2);
+        get_block(me, it->map2[0], (char *)it->map1);
+        it->map1_bno = it->map2[0];
+        it->map1[0] = alloc_block(me);
+        it->map1[1] = 0;
+        put_block(me, it->map2[0], (char *)it->map1);
+        return &it->map1[0];
+      } else if (i == 14) { // three more blocks
+        get_block(me, ip->i_block[14], (char *)it->map3);
+        it->map3_bno = ip->i_block[14];
+        it->map3[0] = alloc_block(me);
+        it->map3[1] = 0;
+        put_block(me, ip->i_block[14], (char *)it->map3);
+        get_block(me, it->map3[0], (char *)it->map2);
+        it->map2_bno = it->map3[0];
+        it->map2[0] = alloc_block(me);
+        it->map2[1] = 0;
+        put_block(me, it->map3[0], (char *)it->map2);
+        get_block(me, it->map2[0], (char *)it->map1);
+        it->map1_bno = it->map2[0];
+        it->map1[0] = alloc_block(me);
+        it->map1[1] = 0;
+        put_block(me, it->map2[0], (char *)it->map1);
+        return &it->map1[0];
+      }
+    }
+  }
+}
 
 // returns block number of logical block
 // 0 on failure (nothing more to read)
@@ -37,21 +131,25 @@ int *get_lbk(blk_iter *it, int target) {
   // null check
   if (!it || !it->mip)
     return 0;
+
   // get blocks based on target
+
+  // get direct block
   if (target < direct_end) {
     it->map1_bno = it->map2_bno = it->map3_bno = 0;
-    // get direct block
     bno = &i_block[target];
-  } else if (target < indirect_end) {
+  }
+  // get indirect block
+  else if (target < indirect_end) {
     it->map2_bno = it->map3_bno = 0;
-    // get indirect block
     if (!(it->lbkno >= indirect_start && it->lbkno < indirect_end))
       // check if map1 cached
       get_block(me, it->map1_bno = i_block[12], (char *)it->map1);
     bno = &it->map1[target - indirect_start];
-  } else if (target < double_end) {
+  }
+  // get double indirect block
+  else if (target < double_end) {
     it->map3_bno = 0;
-    // get double indirect block
     if (!(it->lbkno >= double_start && it->lbkno < double_end))
       // check if map2 cached
       get_block(me, it->map2_bno = i_block[13], (char *)it->map2);
@@ -61,8 +159,9 @@ int *get_lbk(blk_iter *it, int target) {
       get_block(me, it->map1_bno = it->map2[(target - double_start) / blks_per],
                 (char *)it->map1);
     bno = &it->map1[(target - double_start) % blks_per];
-  } else if (target < triple_end) {
-    // triple  indirect blocks
+  }
+  // triple  indirect blocks
+  else if (target < triple_end) {
     if (!(it->lbkno >= triple_start && it->lbkno < triple_end))
       // check if map3 cached
       get_block(me, it->map3_bno = i_block[14], (char *)it->map3);
@@ -80,6 +179,7 @@ int *get_lbk(blk_iter *it, int target) {
                 (char *)it->map1);
     bno = &it->map1[(target - triple_start) % blks_per];
   }
+
   it->lbkno = target;
   return bno;
 }
@@ -102,9 +202,15 @@ int open_file(char *path, int mode) {
       break;
     }
   }
-
   oftp->minode = mip;
   oftp->offset = 0;
+
+  oftp->it.lbkno = -1;
+  oftp->it.map1_bno = -1;
+  oftp->it.map2_bno = -1;
+  oftp->it.map3_bno = -1;
+  oftp->it.mip = mip;
+
   // mode = 0|1|2|3 for R|W|RW|APPEND
   // TODO: we aren't actually checking file permissions?
   if (mode == 0)
@@ -188,7 +294,6 @@ int read_file(int fd, void *buf, unsigned int count) {
   oft *oftp = running->oft_arr[fd];
   if (!oftp || !(oftp->mode == 0 || oftp->mode == 2))
     return 0;
-  blk_iter it = {.mip = oftp->minode, .lbkno = -1};
   int tar_lbk, avil, tar_byte, bno, to_copy, remain = 0, mid;
   avil = oftp->minode->inode.i_size - oftp->offset;
   while (count && avil) {
@@ -199,7 +304,7 @@ int read_file(int fd, void *buf, unsigned int count) {
     // find offset from end of block
     remain = BLKSIZE_1024 - tar_byte;
     // get bno
-    if (!(bno = *get_lbk(&it, tar_lbk)))
+    if (!(bno = *get_lbk(&oftp->it, tar_lbk)))
       return 0;
     // get full ass block
     get_block(oftp->minode->dev, bno, blk_buf);
@@ -227,7 +332,6 @@ int write_file(int fd, void *buf, unsigned int count) {
   oft *oftp = running->oft_arr[fd];
   if (!oftp || !(oftp->mode == 1 || oftp->mode == 2))
     return 0;
-  blk_iter it = {.mip = oftp->minode, .lbkno = -1};
   int tar_lbk, tar_byte, *bnop, to_copy, remain = 0, mid;
   while (count) {
     // find logical block
@@ -236,16 +340,11 @@ int write_file(int fd, void *buf, unsigned int count) {
     tar_byte = oftp->offset % BLKSIZE_1024;
     // find offset from end of block
     remain = BLKSIZE_1024 - tar_byte;
-    // get bno
-    bnop = get_lbk(&it, tar_lbk);
-    *bnop;
-    if (!(*bnop)) {
-      int new_bno = alloc_block(oftp->minode->dev);
-      *bnop = new_bno;
-      if (it.map1_bno)
-        put_block(oftp->minode->dev, it.map1_bno, (char *)it.map1);
+    // get bno and alloc
+    bnop = get_lbk(&oftp->it, tar_lbk);
+    if (!*bnop) {
+      bnop = add_lbk(&oftp->it);
     }
-
     // figure out how much of block to copy
     to_copy = (count > remain) ? remain : count;
 
@@ -263,9 +362,9 @@ int write_file(int fd, void *buf, unsigned int count) {
     // decrement count by amount copied
     count -= to_copy;
     // increase file size
-    oftp->minode->inode.i_size = (oftp->offset > oftp->minode->inode.i_size)
-                                     ? oftp->offset
-                                     : oftp->minode->inode.i_size;
+    oftp->minode->inode.i_size = ((oftp->offset > oftp->minode->inode.i_size)
+                                      ? oftp->offset
+                                      : oftp->minode->inode.i_size);
   }
   return src - (char *)buf;
 }

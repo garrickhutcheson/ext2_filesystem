@@ -9,7 +9,7 @@ bool do_symlink(cmd *c) {
   return _symlink(c->argv[1], c->argv[2]);
 }
 
-int _symlink(char *dest, char *src) {
+int _symlink(char *src, char *dest) {
 
   path src_path, dest_path;
   parse_path(src, &src_path);

@@ -10,6 +10,14 @@ bool do_mount(cmd *c) {
 
 int _mount(char *dev, char *dir) {
 
+  // check if already mounted
+  for (int i = 0; i < NUM_MOUNT_ENTRIES; i++) {
+    if (mount_entry_arr[i].fd && (!strcmp(dev, mount_entry_arr[i].dev_path))) {
+      printf("cannot mount, you already mount! why?\n");
+      return 0;
+    }
+  }
+
   // make a directory at dir
   _mkdir(dir);
 
@@ -17,7 +25,7 @@ int _mount(char *dev, char *dir) {
   minode *mnt_dir;
   path dir_path;
   parse_path(dir, &dir_path);
-  if (!(mnt_dir = search_path(dir_path))) {
+  if (!(mnt_dir = search_path(dir_path)) || !S_ISDIR(mnt_dir->inode.i_mode)) {
     printf("bad path given for mount point\n");
     put_minode(mnt_dir);
     return false;
@@ -28,9 +36,6 @@ int _mount(char *dev, char *dir) {
 
   // set device mount point to minode
   me->mnt_pnt = mnt_dir;
-
-  minode *root = get_minode(me, 2);
-  mnt_dir->inode = root->inode;
 
   // shadow new dir's ino with mnt point
   mnt_dir->mnt = me;

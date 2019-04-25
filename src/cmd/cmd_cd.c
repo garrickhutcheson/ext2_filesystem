@@ -12,7 +12,7 @@ int _cd(char *dest) {
   minode *mip;
   parse_path(dest, &in_path);
   if (!(mip = search_path(in_path))) {
-    printf("path not found");
+    printf("path not found\n");
     return 0;
   }
   // if we got back a symlink
@@ -34,7 +34,7 @@ int _cd(char *dest) {
   }
 
   if (mip == NULL) {
-    printf("path not found");
+    printf("path not found\n");
   }
 
   put_minode(running->cwd);
