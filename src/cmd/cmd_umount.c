@@ -48,7 +48,7 @@ int _umount(char *dir) {
   }
 
   // set ref count zero and not dirty
-  mip->ref_count = 0;
+  mip->ref_count = 1;
   mip->dirty = false;
   // put
   put_minode(mip);

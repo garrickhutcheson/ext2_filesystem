@@ -23,7 +23,7 @@ int main(int argc, char const *argv[]) {
     DEBUG_PRINT("running->pid == %d\n", running->pid);
 
     // prompt and read
-    printf("User:%d @ ", running->gid);
+    printf("User:%d @ ", running->uid);
     _pwd(running->cwd);
     printf(": ");
 

@@ -29,6 +29,7 @@ bool do_pwd(cmd *);
 bool do_read(cmd *);
 bool do_rmdir(cmd *);
 bool do_stat(cmd *);
+bool do_su(cmd *c);
 bool do_symlink(cmd *);
 bool do_touch(cmd *);
 bool do_umount(cmd *);

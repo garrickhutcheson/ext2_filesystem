@@ -22,7 +22,7 @@ int _rmdir(char *dest) {
   in_path.argc--;
   minode *parent = search_path(in_path);
 
-  // TODO: double check this
+  // Just like in real filesystems
   if (running->uid != 0 && mip->inode.i_uid != running->uid) {
     printf("you do not have permission\n");
     put_minode(mip);

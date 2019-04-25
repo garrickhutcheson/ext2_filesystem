@@ -15,6 +15,13 @@ int _unlink(char *dest) {
     printf("bad path");
     return false;
   }
+
+  if (running->uid != 0 && mip->inode.i_uid != running->uid) {
+    printf("you do not have permission\n");
+    put_minode(mip);
+    return 0;
+  }
+
   if (S_ISDIR(mip->inode.i_mode)) {
     printf("Can't unlink directory\n");
     put_minode(mip);

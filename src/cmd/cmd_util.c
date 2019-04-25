@@ -50,6 +50,8 @@ bool do_cmd(cmd *c) {
     do_rmdir(c);
   } else if (!strcmp(c->argv[0], "stat")) {
     do_stat(c);
+  } else if (!strcmp(c->argv[0], "su")) {
+    do_su(c);
   } else if (!strcmp(c->argv[0], "symlink")) {
     do_symlink(c);
   } else if (!strcmp(c->argv[0], "touch")) {

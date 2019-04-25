@@ -1,7 +1,6 @@
 {
     "version": "2.0.0",
-    "tasks": [
-        {
+    "tasks": [{
             "label": "Build/Dev",
             "type": "shell",
             "command": "gcc",
@@ -30,6 +29,7 @@
                 "src/cmd/cmd_read.c",
                 "src/cmd/cmd_rmdir.c",
                 "src/cmd/cmd_stat.c",
+                "src/cmd/cmd_su.c",
                 "src/cmd/cmd_symlink.c",
                 "src/cmd/cmd_touch.c",
                 "src/cmd/cmd_umount.c",
