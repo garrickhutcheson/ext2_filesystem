@@ -1,11 +1,19 @@
 #include "cmd.h"
 
 bool do_mount(cmd *c) {
-  if (c->argc != 3) {
+  if (c->argc == 1) {
+    for (int i = 0; i < NUM_MOUNT_ENTRIES; i++) {
+      mount_entry *me = &mount_entry_arr[i];
+      if (me->fd)
+        printf("me: %s at %s with fd %d\n", me->dev_path, me->mnt_path, me->fd);
+    }
+    return true;
+  } else if (c->argc == 3) {
+    return _mount(c->argv[1], c->argv[2]);
+  } else {
     printf("Usage: mount <device> <dir>\n");
     return false;
   }
-  return _mount(c->argv[1], c->argv[2]);
 }
 
 int _mount(char *dev, char *dir) {

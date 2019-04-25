@@ -68,7 +68,7 @@ bool put_minode(minode *mip) {
     global_root_inode->ref_count = 1;
   if (mip->dirty == 0)
     return false;
-  block = (mip->ino - 1) / 8 + mount_entry_arr[0].group_desc.bg_inode_table;
+  block = (mip->ino - 1) / 8 + mip->dev->group_desc.bg_inode_table;
   offset = (mip->ino - 1) % 8;
   // get block containing this inode
   get_block(mip->dev, block, buf);

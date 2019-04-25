@@ -13,13 +13,17 @@ int _umount(char *dir) {
   path mnt_path;
   parse_path(dir, &mnt_path);
   minode *mip;
-  if (!(mip = search_path(mnt_path)) || mip->ino != 2) {
+  if (!(mip = search_path(mnt_path)) || !(mip->ino == 2)) {
     printf("not a mount point\n");
     return 0;
   }
 
+  minode *newmip = mip->dev->mnt_pnt;
+  put_minode(mip);
+  mip = newmip;
+
   // get mount entry
-  mount_entry *me = mip->dev;
+  mount_entry *me = mip->mnt;
 
   // check if dev in use
   for (int i = 0; i < NUM_MINODES; i++) {
@@ -36,8 +40,10 @@ int _umount(char *dir) {
       return 0;
     }
     if (&mount_entry_arr[i] == me) {
+      DEBUG_PRINT("closing fd %d\n", mount_entry_arr[i].fd);
       close(mount_entry_arr[i].fd);
       mount_entry_arr[i].fd = 0;
+      break;
     }
   }
 
@@ -46,6 +52,5 @@ int _umount(char *dir) {
   mip->dirty = false;
   // put
   put_minode(mip);
-
   return 0;
 }

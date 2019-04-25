@@ -54,6 +54,8 @@ bool do_cmd(cmd *c) {
     do_symlink(c);
   } else if (!strcmp(c->argv[0], "touch")) {
     do_touch(c);
+  } else if (!strcmp(c->argv[0], "umount")) {
+    do_umount(c);
   } else if (!strcmp(c->argv[0], "unlink")) {
     do_unlink(c);
   } else if (!strcmp(c->argv[0], "write")) {

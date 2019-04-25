@@ -62,7 +62,6 @@ int search_dir(minode *mip, char *dir_name) {
 
 // iterate through i_block of mip and store in dir_arr
 // return dirc on success, return 0 on failure
-// TODO: indirect and double indirect
 int list_dir(minode *mip, dir_entry *dir_arr) {
   char *fs_p, buf[BLKSIZE_1024];
   dir_entry *dirp;
@@ -127,25 +126,34 @@ minode *search_path(path target_path) {
 
   // search for each token string
   for (int i = 0; i < target_path.argc; i++) {
+
+    // find component
     ino = search_dir(mip, target_path.argv[i]);
+
+    // special case
     // traverse up to mnt point from mnt device
     if (ino == 2 && mip->ino == 2) {
       minode *newmip = mip->dev->mnt_pnt;
       put_minode(mip);
       mip = newmip;
     }
+
+    // bad path
     if (!ino) {
-      printf("no such component name %s\n", target_path.argv[i]);
+      DEBUG_PRINT("no such component name %s\n", target_path.argv[i]);
       put_minode(mip);
       return NULL;
     }
+
     minode *prev_mip = mip;
     mip = get_minode(mip->dev, ino);
+
     // traverse down to mnt device
     if (mip->mnt) {
       minode *newmip = get_minode(mip->mnt, 2);
       mip = newmip;
     }
+
     if (S_ISLNK(mip->inode.i_mode)) { // handle symlink
       if (i == target_path.argc - 1)  // if last entry return symlink
         return mip;
@@ -156,7 +164,6 @@ minode *search_path(path target_path) {
         mip = search_path(sym_path);
       } else // append sym_path to target_path and continue iteration
       {
-        // TODO: WATCH THIS FUCK-RIDDLED BAD BOY RUN
         memcpy(&target_path.argv[i + sym_path.argc], &target_path.argv[i + 1],
                sizeof(char *) * sym_path.argc);
         memcpy(&target_path.argv[i], sym_path.argv,
