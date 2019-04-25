@@ -110,6 +110,7 @@ int *add_lbk(blk_iter *it) {
         put_block(me, it->map2[0], (char *)it->map1);
         return &it->map1[0];
       }
+      return &ip->i_block[i];
     }
   }
 }
